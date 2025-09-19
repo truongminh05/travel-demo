@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../lib/generated/prisma"
@@ -12,4 +6,148 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model BlogPosts {
+  PostID          Int       @id @default(autoincrement())
+  PostSlug        String
+  Title           String
+  Excerpt         String?
+  Content         String
+  Image           String?
+  AuthorID        Int?
+  PublishedDate   DateTime? @db.Timestamp(6)
+  ReadTimeMinutes Int?
+  Category        String?
+  IsFeatured      Boolean?
+  Status          String?
+  CreatedAt       DateTime? @default(now()) @db.Timestamp(6)
+  UpdatedAt       DateTime? @db.Timestamp(6)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Bookings {
+  BookingID        Int        @id @default(autoincrement())
+  BookingReference String     @unique
+  UserID           Int
+  TourID           Int
+  BookingDate      DateTime?  @default(now()) @db.Timestamp(6)
+  DepartureDate    DateTime   @db.Timestamp(6)
+  NumberOfGuests   Int
+  Subtotal         Decimal    @db.Decimal(10, 2)
+  Taxes            Decimal?   @db.Decimal(10, 2)
+  TotalAmount      Decimal    @db.Decimal(10, 2)
+  Status           String?
+  SpecialRequests  String?
+  Tours            Tours      @relation(fields: [TourID], references: [TourID], onDelete: NoAction, onUpdate: NoAction)
+  Users            Users      @relation(fields: [UserID], references: [UserID], onDelete: NoAction, onUpdate: NoAction)
+  Payments         Payments[]
+  Reviews          Reviews[]
+
+  @@index([TourID])
+  @@index([UserID])
+}
+
+model Payments {
+  PaymentID     Int       @id @default(autoincrement())
+  BookingID     Int?
+  PaymentDate   DateTime? @default(now()) @db.Timestamp(6)
+  Amount        Decimal?  @db.Decimal(10, 2)
+  PaymentMethod String?
+  TransactionID String?
+  Status        String?
+  CreatedAt     DateTime? @default(now()) @db.Timestamp(6)
+  Bookings      Bookings? @relation(fields: [BookingID], references: [BookingID], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Reviews {
+  ReviewID   Int       @id @default(autoincrement())
+  TourID     Int?
+  UserID     Int?
+  BookingID  Int?
+  Rating     Int?
+  Comment    String?
+  ReviewDate DateTime? @default(now()) @db.Timestamp(6)
+  Bookings   Bookings? @relation(fields: [BookingID], references: [BookingID], onDelete: NoAction, onUpdate: NoAction)
+  Tours      Tours?    @relation(fields: [TourID], references: [TourID], onDelete: NoAction, onUpdate: NoAction)
+  Users      Users?    @relation(fields: [UserID], references: [UserID], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([TourID])
+  @@index([UserID])
+}
+
+model TourGallery {
+  ImageID  Int     @id @default(autoincrement())
+  TourID   Int?
+  ImageURL String?
+  Caption  String?
+  Tours    Tours?  @relation(fields: [TourID], references: [TourID], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model TourHighlights {
+  HighlightID   Int     @id @default(autoincrement())
+  TourID        Int?
+  HighlightText String?
+  Tours         Tours?  @relation(fields: [TourID], references: [TourID], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model TourItinerary {
+  ItineraryID Int     @id @default(autoincrement())
+  TourID      Int?
+  DayNumber   Int?
+  Title       String?
+  Description String?
+  Tours       Tours?  @relation(fields: [TourID], references: [TourID], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Tours {
+  TourID         Int              @id @default(autoincrement())
+  TourSlug       String           @unique
+  Title          String
+  Description    String?
+  Destination    String?
+  DurationDays   Int?
+  Price          Decimal?         @db.Decimal(10, 2)
+  MaxGuests      Int?
+  Included       String?
+  NotIncluded    String?
+  DepartureInfo  String?
+  CoverImage     String?
+  AverageRating  Decimal?         @default(0.00) @db.Decimal(3, 2)
+  Status         String?
+  CreatedAt      DateTime?        @default(now()) @db.Timestamp(6)
+  Bookings       Bookings[]
+  Reviews        Reviews[]
+  TourGallery    TourGallery[]
+  TourHighlights TourHighlights[]
+  TourItinerary  TourItinerary[]
+  Wishlists      Wishlists[]
+
+  @@index([Destination])
+}
+
+model Users {
+  UserID         Int         @id @default(autoincrement())
+  Username       String      @unique
+  PasswordHash   String
+  Email          String      @unique
+  FullName       String?
+  ProfilePicture String?
+  Role           String?     @default("Customer")
+  CreatedAt      DateTime?   @default(now()) @db.Timestamp(6)
+  Bookings       Bookings[]
+  Reviews        Reviews[]
+  Wishlists      Wishlists[]
+}
+
+model Wishlists {
+  WishlistID Int       @id @default(autoincrement())
+  UserID     Int?
+  TourID     Int?
+  AddedDate  DateTime? @default(now()) @db.Timestamp(6)
+  Tours      Tours?    @relation(fields: [TourID], references: [TourID], onDelete: NoAction, onUpdate: NoAction)
+  Users      Users?    @relation(fields: [UserID], references: [UserID], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([UserID])
 }
