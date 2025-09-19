@@ -15,19 +15,20 @@ async function getTourDetails(id: string) {
       cache: "no-store",
     }
   );
+
   if (!res.ok) {
-    // Ném lỗi sẽ kích hoạt error.tsx của Next.js, giúp gỡ lỗi tốt hơn
     throw new Error("Không thể tải dữ liệu chi tiết của tour");
   }
+
   return res.json();
 }
 
-// THÊM "async" vào đây là bước quan trọng nhất
 export default async function EditTourPage({
   params,
 }: {
   params: { id: string };
 }) {
+  // ✅ KHÔNG cần await params, chỉ cần params.id
   const tourData = await getTourDetails(params.id);
 
   return (
