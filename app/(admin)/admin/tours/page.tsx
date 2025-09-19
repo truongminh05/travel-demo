@@ -16,24 +16,35 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircleIcon } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
-import { getDbPool, sql } from "@/lib/db";
+import { PlusCircleIcon } from "lucide-react";
 import { AdminTourActions } from "@/components/admin-tour-actions";
 
 // Hàm lấy dữ liệu tour trực tiếp từ CSDL, chạy trên server
 async function getAdminTours() {
   try {
-    const pool = await getDbPool();
-    const result = await pool
-      .request()
-      .query(
-        "SELECT TourID as id, Title, Status, Price, Image FROM Tours ORDER BY CreatedAt DESC"
-      );
-    return result.recordset;
+    const { data, error } = await supabase
+      .from("Tours")
+      .select("TourID, Title, Status, Price, CoverImage")
+      .order("CreatedAt", { ascending: false });
+
+    if (error) {
+      console.error("Lỗi khi lấy dữ liệu Supabase:", error);
+      return [];
+    }
+
+    // Đổi tên fields cho đúng với logic render UI
+    return data.map((tour) => ({
+      id: tour.TourID,
+      Title: tour.Title,
+      Status: tour.Status,
+      Price: tour.Price,
+      Image: tour.CoverImage,
+    }));
   } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu admin tours:", error);
-    return []; // Trả về mảng rỗng nếu có lỗi
+    console.error("Lỗi kết nối Supabase:", error);
+    return [];
   }
 }
 

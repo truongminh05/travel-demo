@@ -1,19 +1,23 @@
 import { NextResponse } from "next/server";
-import { getDbPool, sql } from "@/lib/db";
 import { writeFile } from "fs/promises";
 import path from "path";
+import { supabase } from "@/lib/supabaseClient";
+
 export async function GET() {
   try {
-    const pool = await getDbPool();
-    const result = await pool.request().query(`
-      SELECT TourID, Title, Status, Price, Image 
-      FROM Tours ORDER BY CreatedAt DESC
-    `);
+    const { data, error } = await supabase
+      .from("Tours")
+      .select("TourID, Title, Status, Price, Image")
+      .order("CreatedAt", { ascending: false });
 
-    // Chuyển đổi từ PascalCase sang camelCase
-    const tours = result.recordset.map((tour) => ({
+    if (error) {
+      console.error("Supabase error:", error);
+      return NextResponse.json({ message: "Lỗi Supabase" }, { status: 500 });
+    }
+
+    const tours = data.map((tour) => ({
       id: tour.TourID,
-      Title: tour.Title, // Giữ PascalCase nếu trang admin đang dùng
+      Title: tour.Title,
       Status: tour.Status,
       Price: tour.Price,
       Image: tour.Image,
@@ -34,59 +38,49 @@ export async function POST(request: Request) {
     const imageFile: File | null = data.get("imageFile") as unknown as File;
     let imageUrl = (data.get("Image") as string) || "";
 
-    // Xử lý tải file ảnh
-    if (imageFile) {
+    // Xử lý upload ảnh
+    if (imageFile && imageFile.size > 0) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
       const filename = `${Date.now()}-${imageFile.name.replace(/\s/g, "_")}`;
       const uploadsDir = path.join(process.cwd(), "public/uploads");
       const imagePath = path.join(uploadsDir, filename);
-
       await writeFile(imagePath, buffer);
       imageUrl = `/uploads/${filename}`;
     }
 
-    const pool = await getDbPool();
-    await pool
-      .request()
-      .input("TourSlug", sql.NVarChar, data.get("TourSlug"))
-      .input("Title", sql.NVarChar, data.get("Title"))
-      .input("Location", sql.NVarChar, data.get("Location"))
-      .input("Description", sql.NVarChar, data.get("Description"))
-      .input("Image", sql.NVarChar, imageUrl)
-      .input("Price", sql.Decimal(10, 2), data.get("Price"))
-      .input(
-        "OriginalPrice",
-        sql.Decimal(10, 2),
-        data.get("OriginalPrice") ? data.get("OriginalPrice") : null
-      )
-      .input("Duration", sql.NVarChar, data.get("Duration"))
-      .input("CancellationPolicy", sql.NVarChar, data.get("CancellationPolicy"))
-      .input("CO2Impact", sql.NVarChar, data.get("CO2Impact"))
-      .input(
-        "MaxGuests",
-        sql.Int,
-        data.get("MaxGuests") ? data.get("MaxGuests") : null
-      )
-      .input("MinAge", sql.Int, data.get("MinAge") ? data.get("MinAge") : null)
-      .input("Difficulty", sql.NVarChar, data.get("Difficulty"))
-      .input(
-        "DepartureDate",
-        sql.Date,
-        data.get("DepartureDate") ? data.get("DepartureDate") : null
-      )
-      .input("Status", sql.NVarChar, data.get("Status")).query(`
-        INSERT INTO Tours (
-          TourSlug, Title, Location, Description, Image, Price, OriginalPrice, 
-          Duration, CancellationPolicy, CO2Impact, MaxGuests, MinAge, 
-          Difficulty, DepartureDate, Status
-        ) 
-        VALUES (
-          @TourSlug, @Title, @Location, @Description, @Image, @Price, @OriginalPrice,
-          @Duration, @CancellationPolicy, @CO2Impact, @MaxGuests, @MinAge,
-          @Difficulty, @DepartureDate, @Status
-        )
-      `);
+    // Chuẩn bị dữ liệu
+    const insertData = {
+      TourSlug: data.get("TourSlug"),
+      Title: data.get("Title"),
+      Location: data.get("Location"),
+      Description: data.get("Description"),
+      Image: imageUrl,
+      Price: Number(data.get("Price")),
+      OriginalPrice: data.get("OriginalPrice")
+        ? Number(data.get("OriginalPrice"))
+        : null,
+      Duration: data.get("Duration"),
+      CO2Impact: data.get("CO2Impact"),
+      MaxGuests: data.get("MaxGuests") ? Number(data.get("MaxGuests")) : null,
+      MinAge: data.get("MinAge") ? Number(data.get("MinAge")) : null,
+      Difficulty: data.get("Difficulty"),
+      Status: data.get("Status"),
+    };
+
+    // Thực hiện insert
+    const { error } = await supabase.from("Tours").insert([insertData]);
+
+    if (error) {
+      console.error("Supabase insert error:", error);
+      if (error.code === "23505" || error.message.includes("duplicate")) {
+        return NextResponse.json(
+          { message: "Tour Slug đã tồn tại. Vui lòng chọn slug khác." },
+          { status: 409 }
+        );
+      }
+      return NextResponse.json({ message: "Lỗi tạo tour" }, { status: 500 });
+    }
 
     return NextResponse.json(
       { message: "Tour đã được tạo thành công!" },
@@ -94,15 +88,6 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Lỗi khi tạo tour:", error);
-    if (
-      error instanceof sql.RequestError &&
-      error.message.includes("UNIQUE KEY constraint")
-    ) {
-      return NextResponse.json(
-        { message: "Tour Slug đã tồn tại. Vui lòng chọn một slug khác." },
-        { status: 409 }
-      );
-    }
     return NextResponse.json(
       { message: "Lỗi máy chủ nội bộ" },
       { status: 500 }

@@ -1,19 +1,27 @@
+import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
-import { getDbPool, sql } from "@/lib/db";
 
 export async function GET() {
   try {
-    const pool = await getDbPool();
-    const result = await pool.request().query(`
-      SELECT 
+    const { data, error } = await supabase
+      .from("Tours")
+      .select(
+        `
         TourID, TourSlug, Title, Location, Image, Price, OriginalPrice, 
-        Rating, ReviewCount, Duration, CancellationPolicy, CO2Impact
-      FROM Tours 
-      WHERE Status = 'Published'
-    `);
+        AverageRating, ReviewCount, Duration, CancellationPolicy, CO2Impact
+      `
+      )
+      .eq("Status", "Published");
 
-    // Chuyển đổi từ PascalCase sang camelCase
-    const tours = result.recordset.map((tour) => ({
+    if (error) {
+      console.error("Supabase error:", error);
+      return NextResponse.json(
+        { message: "Lỗi truy vấn Supabase" },
+        { status: 500 }
+      );
+    }
+
+    const tours = data.map((tour) => ({
       id: tour.TourID,
       slug: tour.TourSlug,
       title: tour.Title,
@@ -26,14 +34,14 @@ export async function GET() {
       duration: tour.Duration,
       cancellation: tour.CancellationPolicy,
       co2Impact: tour.CO2Impact,
-      highlights: [], // Bạn có thể thêm logic để lấy highlights ở đây
+      highlights: [], // TODO: Lấy từ bảng TourHighlights nếu cần
     }));
 
     return NextResponse.json(tours);
   } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu tours công khai:", error);
+    console.error("Lỗi khi lấy danh sách tour:", error);
     return NextResponse.json(
-      { message: "Lỗi máy chủ nội bộ" },
+      { message: "Lỗi máy chủ nội bộ", error: (error as Error).message },
       { status: 500 }
     );
   }

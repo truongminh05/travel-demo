@@ -1,28 +1,29 @@
 import { NextResponse } from "next/server";
-import { getDbPool, sql } from "@/lib/db";
+import { supabase } from "@/lib/supabaseClient";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-// Hàm GET: Lấy thông tin chi tiết của một tour
+// GET: /api/tours/[id]
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const pool = await getDbPool();
-    const result = await pool
-      .request()
-      .input("TourID", sql.Int, params.id)
-      .query("SELECT * FROM Tours WHERE TourID = @TourID");
+    const { data, error } = await supabase
+      .from("Tours")
+      .select("*")
+      .eq("TourID", params.id)
+      .single();
 
-    if (result.recordset.length === 0) {
+    if (error || !data) {
       return NextResponse.json({ message: "Tour not found" }, { status: 404 });
     }
-    return NextResponse.json(result.recordset[0]);
+
+    return NextResponse.json(data);
   } catch (error) {
-    console.error(`Lỗi khi lấy dữ liệu tour ID ${params.id}:`, error);
+    console.error("GET tour error:", error);
     return NextResponse.json(
-      { message: "Lỗi máy chủ nội bộ" },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -38,6 +39,7 @@ export async function PATCH(
     const imageFile: File | null = data.get("imageFile") as unknown as File;
     let imageUrl = (data.get("Image") as string) || "";
 
+    // Upload ảnh nếu có file mới
     if (imageFile && imageFile.size > 0) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -48,31 +50,34 @@ export async function PATCH(
       imageUrl = `/uploads/${filename}`;
     }
 
-    const pool = await getDbPool();
-    await pool
-      .request()
-      .input("TourID", sql.Int, params.id)
-      .input("Title", sql.NVarChar, data.get("Title"))
-      .input("Location", sql.NVarChar, data.get("Location"))
-      .input("Price", sql.Decimal(10, 2), data.get("Price"))
-      .input(
-        "OriginalPrice",
-        sql.Decimal(10, 2),
-        data.get("OriginalPrice") ? data.get("OriginalPrice") : null
-      )
-      .input("Status", sql.NVarChar, data.get("Status"))
-      .input("Image", sql.NVarChar, imageUrl).query(`
-        UPDATE Tours 
-        SET 
-          Title = @Title, Location = @Location, Price = @Price,
-          OriginalPrice = @OriginalPrice, Status = @Status, Image = @Image,
-          UpdatedAt = GETDATE()
-        WHERE TourID = @TourID
-      `);
+    const updateData = {
+      Title: data.get("Title"),
+      Location: data.get("Location"),
+      Price: Number(data.get("Price")),
+      OriginalPrice: data.get("OriginalPrice")
+        ? Number(data.get("OriginalPrice"))
+        : null,
+      Status: data.get("Status"),
+      Image: imageUrl,
+      UpdatedAt: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from("Tours")
+      .update(updateData)
+      .eq("TourID", params.id);
+
+    if (error) {
+      console.error("PATCH tour error:", error);
+      return NextResponse.json(
+        { message: "Lỗi khi cập nhật tour" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ message: "Tour đã được cập nhật thành công!" });
   } catch (error) {
-    console.error(`Lỗi khi cập nhật tour ID ${params.id}:`, error);
+    console.error(`Lỗi PATCH tour ID ${params.id}:`, error);
     return NextResponse.json(
       { message: "Lỗi máy chủ nội bộ" },
       { status: 500 }
@@ -86,11 +91,18 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const pool = await getDbPool();
-    await pool
-      .request()
-      .input("TourID", sql.Int, params.id)
-      .query("DELETE FROM Tours WHERE TourID = @TourID");
+    const { error } = await supabase
+      .from("Tours")
+      .delete()
+      .eq("TourID", params.id);
+
+    if (error) {
+      console.error("DELETE tour error:", error);
+      return NextResponse.json(
+        { message: "Lỗi khi xóa tour" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ message: "Tour đã được xóa thành công!" });
   } catch (error) {
