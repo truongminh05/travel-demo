@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@prisma/client": "^6.16.2",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
     "@radix-ui/react-aspect-ratio": "1.1.1",
@@ -37,6 +38,7 @@
     "@radix-ui/react-toggle": "1.1.1",
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
+    "@supabase/supabase-js": "^2.57.4",
     "@sveltejs/kit": "latest",
     "@vercel/analytics": "latest",
     "autoprefixer": "^10.4.20",
@@ -53,6 +55,7 @@
     "next": "^15.5.2",
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.6",
+    "prisma": "^6.16.2",
     "react": "^19",
     "react-day-picker": "9.8.0",
     "react-dom": "^19",
