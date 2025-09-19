@@ -1,7 +1,7 @@
 import type React from "react";
 import { AdminSidebar } from "@/components/admin-sidebar"; // Chúng ta sẽ tạo component này ngay sau đây
 import { SiteHeader } from "@/components/site-header"; // Tái sử dụng header
-
+import { createClient } from "@supabase/supabase-js";
 export default function AdminLayout({
   children,
 }: {

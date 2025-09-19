@@ -5,6 +5,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { createClient } from "@supabase/supabase-js";
 import {
   PackageIcon,
   UsersIcon,
