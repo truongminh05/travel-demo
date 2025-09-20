@@ -15,20 +15,21 @@ async function getTourDetails(id: string) {
       cache: "no-store",
     }
   );
-
   if (!res.ok) {
     throw new Error("Không thể tải dữ liệu chi tiết của tour");
   }
-
   return res.json();
 }
 
-export default async function EditTourPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  // ✅ KHÔNG cần await params, chỉ cần params.id
+// Tự định nghĩa type cho props
+interface EditTourPageProps {
+  params: {
+    id: string;
+  };
+}
+
+// Page Component
+export default async function EditTourPage({ params }: EditTourPageProps) {
   const tourData = await getTourDetails(params.id);
 
   return (
