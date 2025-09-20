@@ -29,7 +29,7 @@ export async function GET() {
       image: tour.Image,
       price: tour.Price,
       originalPrice: tour.OriginalPrice,
-      rating: tour.Rating,
+      rating: tour.AverageRating,
       reviewCount: tour.ReviewCount,
       duration: tour.Duration,
       cancellation: tour.CancellationPolicy,

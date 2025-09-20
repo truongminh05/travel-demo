@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MenuIcon, PhoneIcon, MailIcon } from "lucide-react";
+import { MenuIcon, PhoneIcon, MailIcon, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
@@ -56,7 +56,7 @@ export function SiteHeader() {
               <>
                 <Button asChild variant="ghost" size="sm">
                   <Link href="/account" className="flex items-center gap-2">
-                    <UserIcon className="w-4 h-4" />
+                    <User className="w-4 h-4" />
                     Chào, {user?.firstName}
                   </Link>
                 </Button>

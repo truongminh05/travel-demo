@@ -1,12 +1,19 @@
-import { notFound } from "next/navigation"
-import { CalendarIcon, ClockIcon, ShareIcon, BookmarkIcon, ArrowLeftIcon, TagIcon } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
-import Image from "next/image"
-import Link from "next/link"
+import { notFound } from "next/navigation";
+import {
+  CalendarIcon,
+  ClockIcon,
+  ShareIcon,
+  BookmarkIcon,
+  ArrowLeftIcon,
+  TagIcon,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import Image from "next/image";
+import Link from "next/link";
 
 // Sample blog post data - in a real app, this would come from a CMS or database
 const blogPosts = {
@@ -18,10 +25,10 @@ const blogPosts = {
     content: `
       <p>America's national parks are treasures that showcase the incredible diversity of our country's natural landscapes. From the towering peaks of the Rocky Mountains to the otherworldly formations of the Southwest, each park offers unique experiences that create lasting memories.</p>
 
-      <h2>Planning Your National Park Adventure</h2>
+      <h2 id="planning">Planning Your National Park Adventure</h2>
       <p>The key to a successful national park visit lies in proper planning. Peak seasons vary by location, but generally, summer months see the highest visitor numbers. For a more peaceful experience, consider visiting during shoulder seasons when crowds are thinner and weather is still favorable.</p>
 
-      <h3>Best Times to Visit Popular Parks</h3>
+      <h3 id="timing">Best Times to Visit Popular Parks</h3>
       <ul>
         <li><strong>Yellowstone:</strong> May-September for full access, though spring and fall offer unique wildlife viewing opportunities</li>
         <li><strong>Grand Canyon:</strong> March-May and September-November for comfortable temperatures</li>
@@ -29,14 +36,14 @@ const blogPosts = {
         <li><strong>Great Smoky Mountains:</strong> April-May for wildflowers, October for fall foliage</li>
       </ul>
 
-      <h2>Hidden Gems and Lesser-Known Spots</h2>
+      <h2 id="hidden-gems">Hidden Gems and Lesser-Known Spots</h2>
       <p>While iconic viewpoints are must-sees, some of the most memorable experiences come from exploring lesser-known areas. Research ranger-recommended trails and ask locals for their favorite spots that don't appear in guidebooks.</p>
 
       <h3>Insider Tips for Each Region</h3>
       <p><strong>Western Parks:</strong> Start early to avoid crowds and afternoon heat. Bring layers as mountain weather can change quickly.</p>
       <p><strong>Eastern Parks:</strong> Focus on seasonal highlights like fall foliage or spring wildflowers. Many eastern parks offer excellent winter activities.</p>
 
-      <h2>Sustainable Park Visiting</h2>
+      <h2 id="sustainable">Sustainable Park Visiting</h2>
       <p>As visitor numbers continue to grow, it's crucial to practice Leave No Trace principles. Stay on designated trails, pack out all trash, and respect wildlife by maintaining safe distances.</p>
 
       <p>National parks are not just destinations; they're living classrooms that teach us about conservation, history, and the natural world. Take time to participate in ranger programs and visit visitor centers to deepen your understanding of these special places.</p>
@@ -52,19 +59,18 @@ const blogPosts = {
     tags: ["National Parks", "Travel Planning", "Nature", "Adventure"],
     featured: true,
   },
-}
+};
 
-interface BlogPostPageProps {
-  params: {
-    slug: string
-  }
-}
+type BlogPostPageProps = {
+  params: Promise<{ slug: string }>;
+};
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = blogPosts[params.slug as keyof typeof blogPosts]
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
+  const post = blogPosts[slug as keyof typeof blogPosts];
 
   if (!post) {
-    notFound()
+    notFound();
   }
 
   const relatedPosts = [
@@ -80,7 +86,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
       image: "/blog-colorado-hidden-gems-mountain-lake-wilderness.png",
       category: "Destination Highlights",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,8 +112,12 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               <Badge variant="outline" className="mb-4">
                 {post.category}
               </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 text-balance">{post.title}</h1>
-              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">{post.excerpt}</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 text-balance">
+                {post.title}
+              </h1>
+              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                {post.excerpt}
+              </p>
 
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
@@ -134,11 +144,19 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="bg-transparent">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-transparent"
+                  >
                     <BookmarkIcon className="w-4 h-4 mr-2" />
                     Save
                   </Button>
-                  <Button variant="outline" size="sm" className="bg-transparent">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-transparent"
+                  >
                     <ShareIcon className="w-4 h-4 mr-2" />
                     Share
                   </Button>
@@ -153,7 +171,12 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="relative aspect-[16/9] rounded-lg overflow-hidden">
-                <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
+                <Image
+                  src={post.image || "/placeholder.svg"}
+                  alt={post.title}
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
           </div>
@@ -178,11 +201,12 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                       <span className="text-sm font-medium">Tags:</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {post.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline">
-                          {tag}
-                        </Badge>
-                      ))}
+                      {Array.isArray(post.tags) &&
+                        post.tags.map((tag, index) => (
+                          <Badge key={index} variant="outline">
+                            {tag}
+                          </Badge>
+                        ))}
                     </div>
                   </div>
 
@@ -198,8 +222,12 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                           className="rounded-full"
                         />
                         <div>
-                          <h3 className="font-semibold text-lg mb-2">About {post.author}</h3>
-                          <p className="text-muted-foreground text-sm leading-relaxed">{post.authorBio}</p>
+                          <h3 className="font-semibold text-lg mb-2">
+                            About {post.author}
+                          </h3>
+                          <p className="text-muted-foreground text-sm leading-relaxed">
+                            {post.authorBio}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -268,7 +296,10 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               <h2 className="text-2xl font-bold mb-8">Related Articles</h2>
               <div className="grid md:grid-cols-2 gap-8">
                 {relatedPosts.map((relatedPost, index) => (
-                  <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card
+                    key={index}
+                    className="overflow-hidden hover:shadow-lg transition-shadow"
+                  >
                     <div className="relative aspect-[4/3]">
                       <Image
                         src={relatedPost.image || "/placeholder.svg"}
@@ -277,15 +308,27 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                         className="object-cover"
                       />
                       <div className="absolute top-4 left-4">
-                        <Badge variant="secondary" className="bg-background/90 text-foreground">
+                        <Badge
+                          variant="secondary"
+                          className="bg-background/90 text-foreground"
+                        >
                           {relatedPost.category}
                         </Badge>
                       </div>
                     </div>
                     <CardContent className="p-6">
-                      <h3 className="font-semibold text-lg mb-4 text-balance">{relatedPost.title}</h3>
-                      <Button variant="outline" size="sm" asChild className="bg-transparent">
-                        <Link href={`/blog/${relatedPost.slug}`}>Read Article</Link>
+                      <h3 className="font-semibold text-lg mb-4 text-balance">
+                        {relatedPost.title}
+                      </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        className="bg-transparent"
+                      >
+                        <Link href={`/blog/${relatedPost.slug}`}>
+                          Read Article
+                        </Link>
                       </Button>
                     </CardContent>
                   </Card>
@@ -298,5 +341,5 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
       <SiteFooter />
     </div>
-  )
+  );
 }

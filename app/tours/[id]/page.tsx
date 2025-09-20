@@ -145,18 +145,16 @@ const tours = {
 };
 
 interface TourDetailPageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
-export default function TourDetailPage({ params }: TourDetailPageProps) {
-  const tour = tours[params.id as keyof typeof tours];
+export default async function TourDetailPage({ params }: TourDetailPageProps) {
+  const { id } = await params; // ✅ phải await Promise
+  const tour = tours[id as keyof typeof tours];
 
   if (!tour) {
     notFound();
   }
-
   const getCancellationText = (type: string) => {
     switch (type) {
       case "free":
