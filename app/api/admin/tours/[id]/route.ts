@@ -1,18 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { writeFile } from "fs/promises";
 import path from "path";
 
 // GET: /api/tours/[id]
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
+    const { id } = context.params;
+
     const { data, error } = await supabase
       .from("Tours")
       .select("*")
-      .eq("TourID", params.id)
+      .eq("TourID", id)
       .single();
 
     if (error || !data) {
@@ -29,13 +31,14 @@ export async function GET(
   }
 }
 
-// Hàm PATCH: Cập nhật thông tin của một tour
+// PATCH: cập nhật tour
 export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
-    const data = await request.formData();
+    const { id } = context.params;
+    const data = await req.formData();
     const imageFile: File | null = data.get("imageFile") as unknown as File;
     let imageUrl = (data.get("Image") as string) || "";
 
@@ -65,7 +68,7 @@ export async function PATCH(
     const { error } = await supabase
       .from("Tours")
       .update(updateData)
-      .eq("TourID", params.id);
+      .eq("TourID", id);
 
     if (error) {
       console.error("PATCH tour error:", error);
@@ -77,7 +80,7 @@ export async function PATCH(
 
     return NextResponse.json({ message: "Tour đã được cập nhật thành công!" });
   } catch (error) {
-    console.error(`Lỗi PATCH tour ID ${params.id}:`, error);
+    console.error("PATCH error:", error);
     return NextResponse.json(
       { message: "Lỗi máy chủ nội bộ" },
       { status: 500 }
@@ -85,16 +88,15 @@ export async function PATCH(
   }
 }
 
-// Hàm DELETE: Xóa một tour
+// DELETE: xóa tour
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
-    const { error } = await supabase
-      .from("Tours")
-      .delete()
-      .eq("TourID", params.id);
+    const { id } = context.params;
+
+    const { error } = await supabase.from("Tours").delete().eq("TourID", id);
 
     if (error) {
       console.error("DELETE tour error:", error);
@@ -106,7 +108,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Tour đã được xóa thành công!" });
   } catch (error) {
-    console.error(`Lỗi khi xóa tour ID ${params.id}:`, error);
+    console.error("DELETE error:", error);
     return NextResponse.json(
       { message: "Lỗi máy chủ nội bộ" },
       { status: 500 }
