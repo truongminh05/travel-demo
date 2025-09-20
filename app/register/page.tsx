@@ -73,7 +73,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/register", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -84,10 +84,21 @@ export default function RegisterPage() {
           password: formData.password,
         }),
       });
-      const data = await response.json();
+
+      // Đọc raw text trước
+      const text = await response.text();
+
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (e) {
+        console.error("Không parse được JSON:", text);
+      }
+
       if (!response.ok) {
         throw new Error(data.message || "Đã có lỗi xảy ra.");
       }
+
       router.push("/login?status=success");
     } catch (err: any) {
       setError(err.message);
