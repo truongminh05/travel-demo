@@ -3,13 +3,13 @@ import { supabase } from "@/lib/supabaseClient";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-// GET: /api/tours/[id]
+// GET: /api/admin/tours/[id]
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Record<string, string | string[]> }
 ) {
   try {
-    const { id } = context.params;
+    const id = context.params.id as string;
 
     const { data, error } = await supabase
       .from("Tours")
@@ -34,15 +34,14 @@ export async function GET(
 // PATCH: cập nhật tour
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Record<string, string | string[]> }
 ) {
   try {
-    const { id } = context.params;
+    const id = context.params.id as string;
     const data = await req.formData();
     const imageFile: File | null = data.get("imageFile") as unknown as File;
     let imageUrl = (data.get("Image") as string) || "";
 
-    // Upload ảnh nếu có file mới
     if (imageFile && imageFile.size > 0) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -91,10 +90,10 @@ export async function PATCH(
 // DELETE: xóa tour
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Record<string, string | string[]> }
 ) {
   try {
-    const { id } = context.params;
+    const id = context.params.id as string;
 
     const { error } = await supabase.from("Tours").delete().eq("TourID", id);
 
