@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user.UserID,
             email: user.Email,
-            name: `${user.FullName} ${user.Username}`,
+            name: user.FullName,
             role: user.Role,
           };
         } catch (error) {

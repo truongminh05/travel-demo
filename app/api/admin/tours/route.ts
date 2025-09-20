@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       Title: data.get("Title"),
       Location: data.get("Location"),
       Description: data.get("Description"),
-      Image: imageUrl,
+      CoverImage: imageUrl,
       Price: Number(data.get("Price")),
       OriginalPrice: data.get("OriginalPrice")
         ? Number(data.get("OriginalPrice"))

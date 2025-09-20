@@ -1,12 +1,12 @@
-"use client"
-import { GridIcon, ListIcon, MapIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+"use client";
+import { GridIcon, ListIcon, MapIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export type ViewType = "grid" | "list" | "map"
+export type ViewType = "grid" | "list" | "map";
 
 interface ViewToggleProps {
-  currentView: ViewType
-  onViewChange: (view: ViewType) => void
+  currentView: ViewType;
+  onViewChange: (view: ViewType) => void;
 }
 
 export function ViewToggle({ currentView, onViewChange }: ViewToggleProps) {
@@ -19,7 +19,7 @@ export function ViewToggle({ currentView, onViewChange }: ViewToggleProps) {
         className="h-8 px-3"
       >
         <GridIcon className="w-4 h-4 mr-1" />
-        Grid
+        Lưới
       </Button>
       <Button
         variant={currentView === "list" ? "default" : "ghost"}
@@ -28,7 +28,7 @@ export function ViewToggle({ currentView, onViewChange }: ViewToggleProps) {
         className="h-8 px-3"
       >
         <ListIcon className="w-4 h-4 mr-1" />
-        List
+        Danh sách
       </Button>
       <Button
         variant={currentView === "map" ? "default" : "ghost"}
@@ -37,8 +37,8 @@ export function ViewToggle({ currentView, onViewChange }: ViewToggleProps) {
         className="h-8 px-3"
       >
         <MapIcon className="w-4 h-4 mr-1" />
-        Map
+        Bản đồ
       </Button>
     </div>
-  )
+  );
 }

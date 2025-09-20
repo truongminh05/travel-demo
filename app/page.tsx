@@ -25,23 +25,23 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto text-center">
           <MotionWrapper direction="up" duration={800}>
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
-              Discover Amazing
-              <span className="text-primary block">Domestic Adventures</span>
+              Khám phá những hành trình
+              <span className="text-primary block">Nội địa tuyệt vời</span>
             </h1>
           </MotionWrapper>
 
           <MotionWrapper delay={200} direction="up" duration={800}>
             <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-pretty">
-              Explore breathtaking destinations across the country with our
-              curated travel experiences. From mountain retreats to coastal
-              escapes, find your perfect getaway.
+              Trải nghiệm những điểm đến ngoạn mục trên khắp đất nước với các
+              chuyến đi được chọn lọc. Từ núi non hùng vĩ đến biển cả thơ mộng,
+              hãy tìm cho mình một hành trình hoàn hảo.
             </p>
           </MotionWrapper>
 
           <MotionWrapper delay={400} direction="up" duration={800}>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button asChild size="lg" className="px-8 py-4 text-lg">
-                <Link href="/tours">Explore Tours</Link>
+                <Link href="/tours">Khám phá Tour</Link>
               </Button>
               <Button
                 asChild
@@ -49,7 +49,7 @@ export default function HomePage() {
                 size="lg"
                 className="px-8 py-4 text-lg bg-transparent"
               >
-                <Link href="/about">Learn More</Link>
+                <Link href="/about">Tìm hiểu thêm</Link>
               </Button>
             </div>
           </MotionWrapper>
@@ -58,10 +58,10 @@ export default function HomePage() {
           <MotionWrapper delay={600} direction="up" duration={800}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 max-w-3xl mx-auto">
               {[
-                { value: "500+", label: "Destinations" },
-                { value: "50K+", label: "Happy Travelers" },
-                { value: "4.9", label: "Average Rating" },
-                { value: "24/7", label: "Support" },
+                { value: "500+", label: "Điểm đến" },
+                { value: "50K+", label: "Khách hàng hài lòng" },
+                { value: "4.9", label: "Đánh giá trung bình" },
+                { value: "24/7", label: "Hỗ trợ" },
               ].map((stat, index) => (
                 <div key={index} className="text-center group">
                   <div className="text-3xl font-bold text-primary mb-2 group-hover:scale-110 transition-transform duration-300">
@@ -83,11 +83,11 @@ export default function HomePage() {
           <MotionWrapper direction="up" duration={600}>
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Why Choose TravelDom?
+                Vì sao chọn TravelDom?
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                We make domestic travel simple, affordable, and unforgettable
-                with our comprehensive platform
+                Chúng tôi giúp hành trình du lịch nội địa trở nên đơn giản, tiết
+                kiệm và khó quên với nền tảng toàn diện
               </p>
             </div>
           </MotionWrapper>
@@ -96,39 +96,38 @@ export default function HomePage() {
             {[
               {
                 icon: MapPinIcon,
-                title: "Curated Destinations",
+                title: "Điểm đến chọn lọc",
                 description:
-                  "Hand-picked locations across the country, from hidden gems to popular attractions",
+                  "Những địa điểm được chọn kỹ càng, từ nơi bí ẩn đến điểm đến nổi tiếng",
               },
               {
                 icon: StarIcon,
-                title: "Premium Experiences",
+                title: "Trải nghiệm cao cấp",
                 description:
-                  "High-quality tours and accommodations with verified reviews and ratings",
+                  "Tour và dịch vụ lưu trú chất lượng cao với đánh giá xác thực",
               },
               {
                 icon: ShieldCheckIcon,
-                title: "Secure Booking",
-                description:
-                  "Safe and secure payment processing with flexible cancellation policies",
+                title: "Đặt chỗ an toàn",
+                description: "Thanh toán bảo mật với chính sách hủy linh hoạt",
               },
               {
                 icon: HeartIcon,
-                title: "Personalized Service",
+                title: "Dịch vụ tận tâm",
                 description:
-                  "Tailored recommendations and 24/7 customer support for your peace of mind",
+                  "Gợi ý cá nhân hóa và hỗ trợ khách hàng 24/7 để bạn yên tâm",
               },
               {
                 icon: TrendingUpIcon,
-                title: "Best Prices",
+                title: "Giá tốt nhất",
                 description:
-                  "Competitive pricing with exclusive deals and transparent cost breakdown",
+                  "Giá cả cạnh tranh, nhiều ưu đãi độc quyền và minh bạch chi phí",
               },
               {
                 icon: UsersIcon,
-                title: "Community Driven",
+                title: "Cộng đồng du lịch",
                 description:
-                  "Real reviews from fellow travelers to help you make informed decisions",
+                  "Đánh giá thực tế từ du khách để bạn đưa ra lựa chọn đúng đắn",
               },
             ].map((feature, index) => (
               <MotionWrapper
@@ -160,10 +159,10 @@ export default function HomePage() {
           <MotionWrapper direction="up" duration={600}>
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Popular Travel Categories
+                Danh mục du lịch phổ biến
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Discover the type of adventure that speaks to you
+                Khám phá loại hình du lịch phù hợp với bạn
               </p>
             </div>
           </MotionWrapper>
@@ -171,45 +170,45 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
-                title: "Mountain Adventures",
+                title: "Phiêu lưu núi non",
                 description:
-                  "Scenic peaks, hiking trails, and cozy mountain retreats",
+                  "Đỉnh núi hùng vĩ, đường mòn trekking và nơi nghỉ dưỡng ấm cúng",
                 image: "/mountain-retreat-colorado-aspen-snow-peaks.png",
                 link: "/tours?category=adventure-tours",
               },
               {
-                title: "Beach Getaways",
-                description: "Coastal escapes with sun, sand, and ocean views",
+                title: "Nghỉ dưỡng biển",
+                description:
+                  "Kỳ nghỉ ven biển với nắng vàng, cát trắng và sóng biển",
                 image: "/beach-resort-myrtle-beach-ocean-waves-palm-trees.png",
                 link: "/tours?category=family-trips",
               },
               {
-                title: "City Experiences",
-                description:
-                  "Urban adventures, culture, and historic landmarks",
+                title: "Trải nghiệm thành phố",
+                description: "Khám phá đô thị, văn hóa và di tích lịch sử",
                 image:
                   "/charleston-historic-district-cobblestone-streets-s.png",
                 link: "/tours?category=experiences",
               },
               {
-                title: "Wine Country",
+                title: "Vùng rượu vang",
                 description:
-                  "Vineyard tours, tastings, and gourmet experiences",
+                  "Tham quan vườn nho, nếm rượu và thưởng thức ẩm thực",
                 image:
                   "/napa-valley-vineyard-wine-tasting-rolling-hills-gr.png",
                 link: "/tours?category=combo-packages",
               },
               {
-                title: "National Parks",
-                description: "Wildlife, camping, and natural wonders",
+                title: "Công viên quốc gia",
+                description:
+                  "Thiên nhiên hoang dã, cắm trại và kỳ quan tự nhiên",
                 image:
                   "/yellowstone-national-park-geysers-wildlife-camping.png",
                 link: "/tours?category=adventure-tours",
               },
               {
-                title: "Desert Landscapes",
-                description:
-                  "Unique formations, stargazing, and desert adventures",
+                title: "Cảnh quan sa mạc",
+                description: "Địa hình độc đáo, ngắm sao và phiêu lưu sa mạc",
                 image: "/sedona-arizona-red-rocks-desert-landscape-sunset.png",
                 link: "/tours?category=adventure-tours",
               },
@@ -247,7 +246,7 @@ export default function HomePage() {
           <MotionWrapper delay={600} direction="up" duration={600}>
             <div className="text-center mt-12">
               <Button asChild size="lg" className="px-8">
-                <Link href="/tours">View All Tours</Link>
+                <Link href="/tours">Xem tất cả Tour</Link>
               </Button>
             </div>
           </MotionWrapper>
@@ -259,15 +258,15 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <MotionWrapper direction="up" duration={800}>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Ready to Start Your Adventure?
+              Sẵn sàng cho chuyến đi của bạn?
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of travelers who have discovered amazing domestic
-              destinations with TravelDom
+              Hãy cùng hàng ngàn du khách đã khám phá những điểm đến nội địa
+              tuyệt vời với TravelDom
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="px-8">
-                <Link href="/tours">Browse Tours</Link>
+                <Link href="/tours">Xem Tour</Link>
               </Button>
               <Button
                 asChild
@@ -275,7 +274,7 @@ export default function HomePage() {
                 size="lg"
                 className="px-8 bg-transparent"
               >
-                <Link href="/contact">Contact Us</Link>
+                <Link href="/contact">Liên hệ</Link>
               </Button>
             </div>
           </MotionWrapper>

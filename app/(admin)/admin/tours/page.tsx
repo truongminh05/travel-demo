@@ -1,3 +1,5 @@
+// File: app/(admin)/admin/tours/page.tsx
+
 import Link from "next/link";
 import {
   Card,
@@ -21,12 +23,11 @@ import Image from "next/image";
 import { PlusCircleIcon } from "lucide-react";
 import { AdminTourActions } from "@/components/admin-tour-actions";
 
-// Hàm lấy dữ liệu tour trực tiếp từ CSDL, chạy trên server
 async function getAdminTours() {
   try {
     const { data, error } = await supabase
       .from("Tours")
-      .select("TourID, Title, Status, Price, CoverImage")
+      .select("TourID, Title, Status, Price, Image")
       .order("CreatedAt", { ascending: false });
 
     if (error) {
@@ -34,19 +35,27 @@ async function getAdminTours() {
       return [];
     }
 
-    // Đổi tên fields cho đúng với logic render UI
     return data.map((tour) => ({
       id: tour.TourID,
       Title: tour.Title,
       Status: tour.Status,
       Price: tour.Price,
-      Image: tour.CoverImage,
+      Image: tour.Image,
     }));
   } catch (error) {
     console.error("Lỗi kết nối Supabase:", error);
     return [];
   }
 }
+
+// Thêm hàm format tiền tệ
+const formatCurrency = (value: number | null) => {
+  if (value === null || typeof value === "undefined") return "N/A";
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(value);
+};
 
 export default async function AdminToursPage() {
   const tours = await getAdminTours();
@@ -56,7 +65,7 @@ export default async function AdminToursPage() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Tours</CardTitle>
+            <CardTitle>Quản lý Tour</CardTitle>
             <CardDescription>
               Quản lý các tour và xem hiệu suất bán hàng của chúng.
             </CardDescription>
@@ -76,13 +85,13 @@ export default async function AdminToursPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="hidden w-[100px] sm:table-cell">
-                Image
+                Ảnh
               </TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Price</TableHead>
+              <TableHead>Tên Tour</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Giá</TableHead>
               <TableHead>
-                <span className="sr-only">Actions</span>
+                <span className="sr-only">Hành động</span>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -90,28 +99,38 @@ export default async function AdminToursPage() {
             {tours.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  No tours found.
+                  Không tìm thấy tour nào.
                 </TableCell>
               </TableRow>
             ) : (
               tours.map((tour) => (
                 <TableRow key={tour.id}>
                   <TableCell className="hidden sm:table-cell">
+                    {/* === THAY ĐỔI: Sử dụng đường dẫn tương đối trực tiếp === */}
                     <Image
-                      alt={tour.Title}
+                      alt={tour.Title || "Ảnh tour"}
                       className="aspect-square rounded-md object-cover"
                       height="64"
+                      // Đường dẫn gốc "/uploads/..." là đủ để trình duyệt hiểu
                       src={tour.Image || "/placeholder.svg"}
                       width="64"
+                      // Thêm prop unoptimized để tránh lỗi với các đường dẫn tương đối trên Vercel
+                      unoptimized
                     />
                   </TableCell>
                   <TableCell className="font-medium">{tour.Title}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{tour.Status}</Badge>
+                    <Badge
+                      variant={
+                        tour.Status === "Published" ? "default" : "outline"
+                      }
+                    >
+                      {tour.Status}
+                    </Badge>
                   </TableCell>
-                  <TableCell>${tour.Price}</TableCell>
+                  {/* Cập nhật hiển thị giá tiền */}
+                  <TableCell>{formatCurrency(tour.Price)}</TableCell>
                   <TableCell>
-                    {/* Component này chứa các nút Sửa/Xóa */}
                     <AdminTourActions tourId={tour.id} />
                   </TableCell>
                 </TableRow>

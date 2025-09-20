@@ -40,7 +40,7 @@ export async function PATCH(
     const { id } = await context.params;
     const data = await req.formData();
     const imageFile: File | null = data.get("imageFile") as unknown as File;
-    let imageUrl = (data.get("Image") as string) || "";
+    let imageUrl = (data.get("CoverImage") as string) || "";
 
     if (imageFile && imageFile.size > 0) {
       const bytes = await imageFile.arrayBuffer();
@@ -60,8 +60,7 @@ export async function PATCH(
         ? Number(data.get("OriginalPrice"))
         : null,
       Status: data.get("Status"),
-      Image: imageUrl,
-      UpdatedAt: new Date().toISOString(),
+      CoverImage: imageUrl,
     };
 
     const { error } = await supabase

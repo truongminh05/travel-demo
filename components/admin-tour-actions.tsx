@@ -65,14 +65,14 @@ export function AdminTourActions({ tourId }: AdminTourActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link href={`/admin/tours/edit/${tourId}`}>
-              <EditIcon className="mr-2 h-4 w-4" /> Edit
+              <EditIcon className="mr-2 h-4 w-4" /> Sửa
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => setIsDeleteDialogOpen(true)}
             className="text-destructive focus:text-destructive focus:bg-destructive/10"
           >
-            <TrashIcon className="mr-2 h-4 w-4" /> Delete
+            <TrashIcon className="mr-2 h-4 w-4" /> Xóa
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -85,17 +85,17 @@ export function AdminTourActions({ tourId }: AdminTourActionsProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              tour from the database.
+              Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn
+              tour khỏi cơ sở dữ liệu.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Không</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive hover:bg-destructive/90"
             >
-              Delete
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

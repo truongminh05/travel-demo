@@ -27,7 +27,7 @@ interface TourFormData {
   Duration: string;
   Status: string;
   Description: string;
-  Image: string;
+  CoverImage: string;
   [key: string]: any; // Cho phép các thuộc tính khác
 }
 
@@ -49,7 +49,7 @@ export function AdminTourForm({
     Duration: "",
     Status: "Draft",
     Description: "",
-    Image: "",
+    CoverImage: "",
     CancellationPolicy: "none",
     CO2Impact: "low",
     MaxGuests: "",
@@ -59,7 +59,7 @@ export function AdminTourForm({
     ...tourData,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(
-    tourData?.Image || null
+    tourData?.CoverImage || null
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);

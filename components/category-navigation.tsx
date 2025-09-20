@@ -1,3 +1,5 @@
+// File: components/category-navigation.tsx
+
 "use client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,33 +33,33 @@ export function CategoryNavigation({
   const categories = [
     {
       id: "all" as CategoryType,
-      name: "All Tours",
-      description: "Browse all available tours",
+      name: "Tất cả Tour",
+      description: "Duyệt qua tất cả các tour hiện có",
     },
     {
       id: "domestic-tours" as CategoryType,
-      name: "Domestic Tours",
-      description: "Explore destinations within the country",
+      name: "Tour trong nước",
+      description: "Khám phá các điểm đến trong Việt Nam",
     },
     {
       id: "combo-packages" as CategoryType,
-      name: "Combo Packages",
-      description: "Multi-destination travel packages",
+      name: "Gói Combo",
+      description: "Các gói du lịch kết hợp nhiều điểm đến",
     },
     {
       id: "experiences" as CategoryType,
-      name: "Experiences",
-      description: "Unique cultural and adventure experiences",
+      name: "Trải nghiệm",
+      description: "Trải nghiệm văn hóa và phiêu lưu độc đáo",
     },
     {
       id: "adventure-tours" as CategoryType,
-      name: "Adventure Tours",
-      description: "Thrilling outdoor adventures",
+      name: "Tour mạo hiểm",
+      description: "Những chuyến phiêu lưu ngoài trời hấp dẫn",
     },
     {
       id: "family-trips" as CategoryType,
-      name: "Family Trips",
-      description: "Perfect for family vacations",
+      name: "Chuyến đi gia đình",
+      description: "Hoàn hảo cho các kỳ nghỉ cùng gia đình",
     },
   ];
 
@@ -66,10 +68,10 @@ export function CategoryNavigation({
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-6">
           <h3 className="text-lg font-semibold text-foreground mb-2">
-            Browse by Category
+            Duyệt theo danh mục
           </h3>
           <p className="text-sm text-muted-foreground">
-            Find the perfect travel experience for you
+            Tìm trải nghiệm du lịch hoàn hảo cho bạn
           </p>
         </div>
 
@@ -101,7 +103,7 @@ export function CategoryNavigation({
           ))}
         </div>
 
-        {/* Mobile Navigation - Horizontal Scroll */}
+        {/* Mobile Navigation */}
         <div className="md:hidden">
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map((category) => (
@@ -131,7 +133,6 @@ export function CategoryNavigation({
           </div>
         </div>
 
-        {/* Category Description */}
         <div className="text-center mt-4">
           <p className="text-sm text-muted-foreground">
             {categories.find((cat) => cat.id === activeCategory)?.description}

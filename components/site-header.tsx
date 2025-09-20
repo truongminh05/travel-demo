@@ -1,15 +1,16 @@
 "use client";
-
+import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { MenuIcon, PhoneIcon, MailIcon, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
 
 export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
+  const user = session?.user as any;
 
   const navigationItems = [
     { name: "Home", href: "/" },
@@ -48,6 +49,14 @@ export function SiteHeader() {
                 {item.name}
               </Link>
             ))}
+            {isAuthenticated && user?.role === "Admin" && (
+              <Link
+                href="/admin/dashboard"
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                Admin
+              </Link>
+            )}
           </nav>
 
           {/* Desktop Actions - THAY ĐỔI TẠI ĐÂY */}

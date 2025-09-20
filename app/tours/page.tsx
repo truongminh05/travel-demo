@@ -40,12 +40,12 @@ export default function ToursPage() {
     const fetchTours = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/tours"); // API này sẽ được tạo ở bước tiếp theo
-        if (!res.ok) throw new Error("Failed to fetch tours");
+        const res = await fetch("/api/tours");
+        if (!res.ok) throw new Error("Không thể tải danh sách tour");
         const data = await res.json();
         setTours(data);
       } catch (error) {
-        console.error("Failed to fetch tours", error);
+        console.error("Lỗi tải tour", error);
       } finally {
         setIsLoading(false);
       }
@@ -75,7 +75,7 @@ export default function ToursPage() {
 
   const filteredAndSortedTours = useMemo(() => {
     let filtered = [...tours];
-    // This is where you'd apply your sorting and filtering logic on `filtered` array
+    // logic lọc và sắp xếp sẽ được viết ở đây
     return filtered;
   }, [tours, activeCategory, filters]);
 
@@ -104,15 +104,15 @@ export default function ToursPage() {
         <MotionWrapper direction="fade" duration={600}>
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-4">
-              No tours match your current filters.
+              Không có tour nào phù hợp với bộ lọc hiện tại.
             </p>
             <Button
               variant="outline"
               onClick={() => {
-                /* clear filters logic */
+                /* logic xóa bộ lọc */
               }}
             >
-              Clear all filters
+              Xóa tất cả bộ lọc
             </Button>
           </div>
         </MotionWrapper>
@@ -146,11 +146,11 @@ export default function ToursPage() {
           <MotionWrapper direction="up" duration={800}>
             <div className="text-center mb-8">
               <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-                Find Your Perfect Tour
+                Tìm kiếm Tour hoàn hảo cho bạn
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Search and discover amazing domestic travel experiences tailored
-                to your preferences
+                Khám phá và trải nghiệm du lịch nội địa tuyệt vời, được thiết kế
+                phù hợp với sở thích của bạn
               </p>
             </div>
           </MotionWrapper>
@@ -174,15 +174,15 @@ export default function ToursPage() {
             <div className="flex-1">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div className="text-sm text-muted-foreground">
-                  Showing {filteredAndSortedTours.length} of {tours.length}{" "}
-                  tours
+                  Hiển thị {filteredAndSortedTours.length} trên {tours.length}{" "}
+                  tour
                 </div>
                 <ViewToggle
                   currentView={currentView}
                   onViewChange={setCurrentView}
                 />
               </div>
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={<div>Đang tải...</div>}>
                 {renderTourContent()}
               </Suspense>
             </div>

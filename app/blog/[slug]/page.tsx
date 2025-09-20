@@ -15,48 +15,48 @@ import { SiteFooter } from "@/components/site-footer";
 import Image from "next/image";
 import Link from "next/link";
 
-// Sample blog post data - in a real app, this would come from a CMS or database
+// Dữ liệu blog mẫu - trong ứng dụng thật sẽ lấy từ CMS hoặc cơ sở dữ liệu
 const blogPosts = {
   "ultimate-guide-national-parks-2024": {
     slug: "ultimate-guide-national-parks-2024",
-    title: "The Ultimate Guide to America's National Parks in 2024",
+    title: "Hướng dẫn đầy đủ về các Công viên Quốc gia Mỹ năm 2024",
     excerpt:
-      "Discover the best times to visit, hidden gems, and insider tips for exploring America's most spectacular national parks this year.",
+      "Khám phá thời điểm tốt nhất để ghé thăm, những điểm ít người biết và các mẹo nội bộ để khám phá công viên quốc gia tuyệt đẹp của Mỹ trong năm nay.",
     content: `
-      <p>America's national parks are treasures that showcase the incredible diversity of our country's natural landscapes. From the towering peaks of the Rocky Mountains to the otherworldly formations of the Southwest, each park offers unique experiences that create lasting memories.</p>
+      <p>Công viên quốc gia Mỹ là những báu vật thể hiện sự đa dạng đáng kinh ngạc của thiên nhiên. Từ những đỉnh núi hùng vĩ của Dãy Rocky đến những hình thù kỳ lạ của miền Tây Nam, mỗi công viên đều mang lại trải nghiệm độc đáo.</p>
 
-      <h2 id="planning">Planning Your National Park Adventure</h2>
-      <p>The key to a successful national park visit lies in proper planning. Peak seasons vary by location, but generally, summer months see the highest visitor numbers. For a more peaceful experience, consider visiting during shoulder seasons when crowds are thinner and weather is still favorable.</p>
+      <h2 id="planning">Lập kế hoạch chuyến đi công viên quốc gia</h2>
+      <p>Chìa khóa cho một chuyến đi thành công là chuẩn bị kỹ lưỡng. Mùa cao điểm thay đổi tùy từng nơi, nhưng nhìn chung mùa hè có đông khách nhất. Nếu muốn yên tĩnh, hãy đến vào mùa xuân hoặc mùa thu khi thời tiết vẫn đẹp và ít người hơn.</p>
 
-      <h3 id="timing">Best Times to Visit Popular Parks</h3>
+      <h3 id="timing">Thời điểm tốt nhất để ghé thăm</h3>
       <ul>
-        <li><strong>Yellowstone:</strong> May-September for full access, though spring and fall offer unique wildlife viewing opportunities</li>
-        <li><strong>Grand Canyon:</strong> March-May and September-November for comfortable temperatures</li>
-        <li><strong>Yosemite:</strong> April-October, with waterfalls at their peak in late spring</li>
-        <li><strong>Great Smoky Mountains:</strong> April-May for wildflowers, October for fall foliage</li>
+        <li><strong>Yellowstone:</strong> Tháng 5–9 để tham quan toàn bộ, mùa xuân và thu thì lý tưởng để ngắm động vật hoang dã</li>
+        <li><strong>Grand Canyon:</strong> Tháng 3–5 và 9–11 với thời tiết dễ chịu</li>
+        <li><strong>Yosemite:</strong> Tháng 4–10, thác nước đẹp nhất vào cuối mùa xuân</li>
+        <li><strong>Great Smoky Mountains:</strong> Tháng 4–5 có hoa dại, tháng 10 lá vàng đẹp</li>
       </ul>
 
-      <h2 id="hidden-gems">Hidden Gems and Lesser-Known Spots</h2>
-      <p>While iconic viewpoints are must-sees, some of the most memorable experiences come from exploring lesser-known areas. Research ranger-recommended trails and ask locals for their favorite spots that don't appear in guidebooks.</p>
+      <h2 id="hidden-gems">Điểm ẩn ít người biết</h2>
+      <p>Ngoài những điểm nổi tiếng, bạn hãy thử khám phá các cung đường ít người đi theo gợi ý của kiểm lâm hoặc dân địa phương.</p>
 
-      <h3>Insider Tips for Each Region</h3>
-      <p><strong>Western Parks:</strong> Start early to avoid crowds and afternoon heat. Bring layers as mountain weather can change quickly.</p>
-      <p><strong>Eastern Parks:</strong> Focus on seasonal highlights like fall foliage or spring wildflowers. Many eastern parks offer excellent winter activities.</p>
+      <h3>Mẹo nội bộ theo từng khu vực</h3>
+      <p><strong>Khu vực miền Tây:</strong> Đi sớm để tránh đông và nắng gắt buổi chiều. Nhớ mang theo áo khoác vì thời tiết vùng núi thay đổi nhanh.</p>
+      <p><strong>Khu vực miền Đông:</strong> Tập trung vào các điểm nổi bật theo mùa như lá vàng hay hoa dại. Nhiều công viên phía Đông cũng có hoạt động mùa đông tuyệt vời.</p>
 
-      <h2 id="sustainable">Sustainable Park Visiting</h2>
-      <p>As visitor numbers continue to grow, it's crucial to practice Leave No Trace principles. Stay on designated trails, pack out all trash, and respect wildlife by maintaining safe distances.</p>
+      <h2 id="sustainable">Du lịch bền vững</h2>
+      <p>Hãy tuân thủ nguyên tắc “Không để lại dấu vết”: đi đúng lối mòn, mang rác ra ngoài, và giữ khoảng cách an toàn với động vật hoang dã.</p>
 
-      <p>National parks are not just destinations; they're living classrooms that teach us about conservation, history, and the natural world. Take time to participate in ranger programs and visit visitor centers to deepen your understanding of these special places.</p>
+      <p>Công viên quốc gia không chỉ là điểm đến mà còn là lớp học ngoài trời về bảo tồn, lịch sử và thiên nhiên. Hãy tham gia chương trình của kiểm lâm để hiểu thêm.</p>
     `,
     image: "/blog-national-parks-guide-mountains-landscape.png",
     author: "Sarah Johnson",
     authorImage: "/professional-woman-ceo-travel-industry.png",
     authorBio:
-      "Sarah is TravelDom's founder and has visited all 63 national parks. She's passionate about sustainable tourism and helping others discover America's natural wonders.",
-    date: "January 15, 2024",
-    readTime: "12 min read",
-    category: "Travel Guides",
-    tags: ["National Parks", "Travel Planning", "Nature", "Adventure"],
+      "Sarah là người sáng lập TravelDom, đã đặt chân đến cả 63 công viên quốc gia Mỹ. Cô đam mê du lịch bền vững và muốn chia sẻ vẻ đẹp thiên nhiên nước Mỹ.",
+    date: "15 Tháng 1, 2024",
+    readTime: "12 phút đọc",
+    category: "Hướng dẫn du lịch",
+    tags: ["Công viên quốc gia", "Lên kế hoạch", "Thiên nhiên", "Phiêu lưu"],
     featured: true,
   },
 };
@@ -76,15 +76,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const relatedPosts = [
     {
       slug: "spring-travel-destinations-2024",
-      title: "10 Perfect Spring Travel Destinations in the US",
+      title: "10 điểm du lịch lý tưởng vào mùa xuân tại Mỹ",
       image: "/blog-spring-destinations-cherry-blossoms-flowers.png",
-      category: "Seasonal Guides",
+      category: "Hướng dẫn theo mùa",
     },
     {
       slug: "hidden-gems-colorado-rockies",
-      title: "Hidden Gems in the Colorado Rockies You've Never Heard Of",
+      title: "Những viên ngọc ẩn tại dãy núi Rockies Colorado",
       image: "/blog-colorado-hidden-gems-mountain-lake-wilderness.png",
-      category: "Destination Highlights",
+      category: "Điểm đến nổi bật",
     },
   ];
 
@@ -99,7 +99,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <Button variant="ghost" asChild>
               <Link href="/blog">
                 <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                Back to Blog
+                Quay lại Blog
               </Link>
             </Button>
           </div>
@@ -150,7 +150,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     className="bg-transparent"
                   >
                     <BookmarkIcon className="w-4 h-4 mr-2" />
-                    Save
+                    Lưu
                   </Button>
                   <Button
                     variant="outline"
@@ -158,7 +158,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     className="bg-transparent"
                   >
                     <ShareIcon className="w-4 h-4 mr-2" />
-                    Share
+                    Chia sẻ
                   </Button>
                 </div>
               </div>
@@ -198,7 +198,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   <div className="mt-12 pt-8 border-t">
                     <div className="flex items-center gap-2 mb-4">
                       <TagIcon className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Tags:</span>
+                      <span className="text-sm font-medium">Thẻ:</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {Array.isArray(post.tags) &&
@@ -223,7 +223,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         />
                         <div>
                           <h3 className="font-semibold text-lg mb-2">
-                            About {post.author}
+                            Về {post.author}
                           </h3>
                           <p className="text-muted-foreground text-sm leading-relaxed">
                             {post.authorBio}
@@ -240,31 +240,31 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     {/* Table of Contents */}
                     <Card>
                       <CardContent className="p-6">
-                        <h3 className="font-semibold mb-4">In This Article</h3>
+                        <h3 className="font-semibold mb-4">Trong bài viết</h3>
                         <nav className="space-y-2 text-sm">
                           <a
                             href="#planning"
                             className="block text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            Planning Your Adventure
+                            Lập kế hoạch chuyến đi
                           </a>
                           <a
                             href="#timing"
                             className="block text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            Best Times to Visit
+                            Thời điểm tốt nhất
                           </a>
                           <a
                             href="#hidden-gems"
                             className="block text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            Hidden Gems
+                            Điểm ẩn
                           </a>
                           <a
                             href="#sustainable"
                             className="block text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            Sustainable Visiting
+                            Du lịch bền vững
                           </a>
                         </nav>
                       </CardContent>
@@ -273,12 +273,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     {/* Newsletter */}
                     <Card>
                       <CardContent className="p-6">
-                        <h3 className="font-semibold mb-2">Stay Updated</h3>
+                        <h3 className="font-semibold mb-2">
+                          Nhận thông tin mới
+                        </h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                          Get weekly travel tips and destination guides.
+                          Nhận mẹo du lịch và hướng dẫn điểm đến mỗi tuần.
                         </p>
                         <Button className="w-full" size="sm">
-                          Subscribe
+                          Đăng ký
                         </Button>
                       </CardContent>
                     </Card>
@@ -293,7 +295,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <section className="py-16 bg-accent/50">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl font-bold mb-8">Related Articles</h2>
+              <h2 className="text-2xl font-bold mb-8">Bài viết liên quan</h2>
               <div className="grid md:grid-cols-2 gap-8">
                 {relatedPosts.map((relatedPost, index) => (
                   <Card
@@ -327,7 +329,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         className="bg-transparent"
                       >
                         <Link href={`/blog/${relatedPost.slug}`}>
-                          Read Article
+                          Đọc bài viết
                         </Link>
                       </Button>
                     </CardContent>

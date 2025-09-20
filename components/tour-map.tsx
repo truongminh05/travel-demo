@@ -1,21 +1,27 @@
-import { MapPinIcon } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { MapPinIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface TourMapProps {
   tours: Array<{
-    id: string
-    title: string
-    location: string
-    price: number
-    rating: number
-    co2Impact: "low" | "medium" | "high"
-  }>
+    id: string;
+    title: string;
+    location: string;
+    price: number;
+    rating: number;
+    co2Impact: "low" | "medium" | "high";
+  }>;
 }
 
 export function TourMap({ tours }: TourMapProps) {
   // Mock coordinates for demonstration
   const tourLocations = [
-    { id: "1", name: "Aspen, Colorado", x: 25, y: 40, tours: tours.filter((t) => t.location.includes("Colorado")) },
+    {
+      id: "1",
+      name: "Aspen, Colorado",
+      x: 25,
+      y: 40,
+      tours: tours.filter((t) => t.location.includes("Colorado")),
+    },
     {
       id: "2",
       name: "Myrtle Beach, SC",
@@ -23,11 +29,35 @@ export function TourMap({ tours }: TourMapProps) {
       y: 65,
       tours: tours.filter((t) => t.location.includes("South Carolina")),
     },
-    { id: "3", name: "Sedona, Arizona", x: 20, y: 60, tours: tours.filter((t) => t.location.includes("Arizona")) },
-    { id: "4", name: "Charleston, SC", x: 78, y: 68, tours: tours.filter((t) => t.location.includes("Charleston")) },
-    { id: "5", name: "Napa Valley, CA", x: 8, y: 45, tours: tours.filter((t) => t.location.includes("California")) },
-    { id: "6", name: "Yellowstone, WY", x: 30, y: 25, tours: tours.filter((t) => t.location.includes("Wyoming")) },
-  ]
+    {
+      id: "3",
+      name: "Sedona, Arizona",
+      x: 20,
+      y: 60,
+      tours: tours.filter((t) => t.location.includes("Arizona")),
+    },
+    {
+      id: "4",
+      name: "Charleston, SC",
+      x: 78,
+      y: 68,
+      tours: tours.filter((t) => t.location.includes("Charleston")),
+    },
+    {
+      id: "5",
+      name: "Napa Valley, CA",
+      x: 8,
+      y: 45,
+      tours: tours.filter((t) => t.location.includes("California")),
+    },
+    {
+      id: "6",
+      name: "Yellowstone, WY",
+      x: 30,
+      y: 25,
+      tours: tours.filter((t) => t.location.includes("Wyoming")),
+    },
+  ];
 
   return (
     <Card className="h-[600px] overflow-hidden">
@@ -66,16 +96,28 @@ export function TourMap({ tours }: TourMapProps) {
                 {/* Tooltip */}
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                   <div className="bg-background border rounded-lg shadow-lg p-3 min-w-48">
-                    <div className="text-sm font-medium text-foreground mb-1">{location.name}</div>
+                    <div className="text-sm font-medium text-foreground mb-1">
+                      {location.name}
+                    </div>
                     <div className="space-y-1">
                       {location.tours.slice(0, 2).map((tour) => (
-                        <div key={tour.id} className="text-xs text-muted-foreground flex justify-between">
-                          <span className="truncate mr-2">{tour.title.slice(0, 25)}...</span>
-                          <span className="font-medium text-primary">${tour.price}</span>
+                        <div
+                          key={tour.id}
+                          className="text-xs text-muted-foreground flex justify-between"
+                        >
+                          <span className="truncate mr-2">
+                            {tour.title.slice(0, 25)}...
+                          </span>
+                          <span className="font-medium text-primary">
+                            ${tour.price}
+                          </span>
                         </div>
                       ))}
                       {location.tours.length > 2 && (
-                        <div className="text-xs text-muted-foreground">+{location.tours.length - 2} more tours</div>
+                        <div className="text-xs text-muted-foreground">
+                          +{location.tours.length - 2} Nhiều chuyến tham quan
+                          hơn
+                        </div>
                       )}
                     </div>
                   </div>
@@ -86,7 +128,9 @@ export function TourMap({ tours }: TourMapProps) {
 
           {/* Map Legend */}
           <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-            <div className="text-sm font-medium text-foreground mb-2">Legend</div>
+            <div className="text-sm font-medium text-foreground mb-2">
+              Legend
+            </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="w-3 h-3 bg-primary rounded-full"></div>
               <span>Tour Locations</span>
@@ -95,11 +139,15 @@ export function TourMap({ tours }: TourMapProps) {
 
           {/* Tour Count */}
           <div className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-            <div className="text-sm font-medium text-foreground">{tours.length} Tours Available</div>
-            <div className="text-xs text-muted-foreground">Across {tourLocations.length} locations</div>
+            <div className="text-sm font-medium text-foreground">
+              {tours.length} Tours Available
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Across {tourLocations.length} locations
+            </div>
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,108 +1,112 @@
-import { CalendarIcon, ClockIcon, ArrowRightIcon } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
-import Image from "next/image"
-import Link from "next/link"
+import { CalendarIcon, ClockIcon, ArrowRightIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function BlogPage() {
   const featuredPost = {
     slug: "ultimate-guide-national-parks-2024",
-    title: "The Ultimate Guide to America's National Parks in 2024",
+    title: "Hướng dẫn toàn diện về các Công viên Quốc gia Mỹ năm 2024",
     excerpt:
-      "Discover the best times to visit, hidden gems, and insider tips for exploring America's most spectacular national parks this year.",
+      "Khám phá thời điểm tốt nhất để ghé thăm, những điểm đến ít người biết và mẹo từ chuyên gia để trải nghiệm công viên quốc gia tuyệt vời nhất.",
     image: "/blog-national-parks-guide-mountains-landscape.png",
     author: "Sarah Johnson",
     authorImage: "/professional-woman-ceo-travel-industry.png",
-    date: "January 15, 2024",
-    readTime: "12 min read",
-    category: "Travel Guides",
+    date: "15 Tháng 1, 2024",
+    readTime: "12 phút đọc",
+    category: "Cẩm nang du lịch",
     featured: true,
-  }
+  };
 
   const blogPosts = [
     {
       slug: "spring-travel-destinations-2024",
-      title: "10 Perfect Spring Travel Destinations in the US",
-      excerpt: "From cherry blossoms in Washington DC to wildflowers in Texas, discover the best spring destinations.",
+      title: "10 điểm đến lý tưởng vào mùa xuân tại Mỹ",
+      excerpt:
+        "Từ hoa anh đào ở Washington DC đến cánh đồng hoa dại ở Texas, khám phá những điểm đến tuyệt đẹp mùa xuân.",
       image: "/blog-spring-destinations-cherry-blossoms-flowers.png",
       author: "Emily Rodriguez",
       authorImage: "/placeholder-493u9.png",
-      date: "January 12, 2024",
-      readTime: "8 min read",
-      category: "Seasonal Guides",
+      date: "12 Tháng 1, 2024",
+      readTime: "8 phút đọc",
+      category: "Cẩm nang theo mùa",
     },
     {
       slug: "budget-travel-tips-domestic",
-      title: "How to Travel America on a Budget: 15 Money-Saving Tips",
+      title: "Du lịch Mỹ tiết kiệm: 15 mẹo giúp bạn giảm chi phí",
       excerpt:
-        "Expert strategies to explore the US without breaking the bank, from accommodation hacks to dining deals.",
+        "Chiến lược từ chuyên gia để khám phá nước Mỹ mà không tốn kém: mẹo lưu trú, ăn uống và nhiều hơn nữa.",
       image: "/blog-budget-travel-tips-money-saving-backpack.png",
       author: "Michael Chen",
       authorImage: "/professional-man-operations-manager-travel.png",
-      date: "January 10, 2024",
-      readTime: "10 min read",
-      category: "Travel Tips",
+      date: "10 Tháng 1, 2024",
+      readTime: "10 phút đọc",
+      category: "Mẹo du lịch",
     },
     {
       slug: "hidden-gems-colorado-rockies",
-      title: "Hidden Gems in the Colorado Rockies You've Never Heard Of",
+      title: "Những viên ngọc ẩn ở dãy núi Rocky, Colorado",
       excerpt:
-        "Venture beyond the popular trails to discover secret waterfalls, pristine lakes, and untouched wilderness.",
+        "Khám phá những con thác bí mật, hồ nước nguyên sơ và vùng hoang dã chưa được chạm tới ngoài các tuyến đường phổ biến.",
       image: "/blog-colorado-hidden-gems-mountain-lake-wilderness.png",
       author: "David Thompson",
       authorImage: "/placeholder-ihg94.png",
-      date: "January 8, 2024",
-      readTime: "7 min read",
-      category: "Destination Highlights",
+      date: "8 Tháng 1, 2024",
+      readTime: "7 phút đọc",
+      category: "Điểm đến nổi bật",
     },
     {
       slug: "sustainable-travel-practices",
-      title: "Sustainable Travel: How to Explore Responsibly",
-      excerpt: "Learn how to minimize your environmental impact while maximizing your travel experiences.",
+      title: "Du lịch bền vững: Làm sao để khám phá có trách nhiệm",
+      excerpt:
+        "Tìm hiểu cách giảm tác động môi trường trong khi vẫn tận hưởng trọn vẹn chuyến đi.",
       image: "/blog-sustainable-travel-eco-friendly-nature.png",
       author: "David Thompson",
       authorImage: "/placeholder-ihg94.png",
-      date: "January 5, 2024",
-      readTime: "9 min read",
-      category: "Sustainable Travel",
+      date: "5 Tháng 1, 2024",
+      readTime: "9 phút đọc",
+      category: "Du lịch bền vững",
     },
     {
       slug: "family-friendly-destinations-summer",
-      title: "Best Family-Friendly Summer Destinations",
-      excerpt: "Kid-approved destinations that parents will love too, with activities for every age group.",
+      title: "Điểm đến mùa hè thân thiện với gia đình",
+      excerpt:
+        "Những nơi trẻ em yêu thích và bố mẹ cũng sẽ hài lòng, với hoạt động cho mọi lứa tuổi.",
       image: "/blog-family-travel-summer-beach-kids-fun.png",
       author: "Emily Rodriguez",
       authorImage: "/placeholder-493u9.png",
-      date: "January 3, 2024",
-      readTime: "6 min read",
-      category: "Family Travel",
+      date: "3 Tháng 1, 2024",
+      readTime: "6 phút đọc",
+      category: "Du lịch gia đình",
     },
     {
       slug: "photography-tips-landscape",
-      title: "Landscape Photography Tips for Travel Enthusiasts",
-      excerpt: "Capture stunning travel photos with these professional techniques and equipment recommendations.",
+      title: "Mẹo chụp ảnh phong cảnh cho người yêu du lịch",
+      excerpt:
+        "Chụp những bức ảnh tuyệt đẹp với kỹ thuật chuyên nghiệp và gợi ý thiết bị phù hợp.",
       image: "/blog-photography-tips-camera-landscape-sunset.png",
       author: "Sarah Johnson",
       authorImage: "/professional-woman-ceo-travel-industry.png",
-      date: "December 28, 2023",
-      readTime: "11 min read",
-      category: "Photography",
+      date: "28 Tháng 12, 2023",
+      readTime: "11 phút đọc",
+      category: "Nhiếp ảnh",
     },
-  ]
+  ];
 
   const categories = [
-    { name: "All Posts", count: 24, active: true },
-    { name: "Travel Tips", count: 8 },
-    { name: "Destination Highlights", count: 6 },
-    { name: "Seasonal Guides", count: 4 },
-    { name: "Family Travel", count: 3 },
-    { name: "Sustainable Travel", count: 2 },
-    { name: "Photography", count: 1 },
-  ]
+    { name: "Tất cả bài viết", count: 24, active: true },
+    { name: "Mẹo du lịch", count: 8 },
+    { name: "Điểm đến nổi bật", count: 6 },
+    { name: "Cẩm nang theo mùa", count: 4 },
+    { name: "Du lịch gia đình", count: 3 },
+    { name: "Du lịch bền vững", count: 2 },
+    { name: "Nhiếp ảnh", count: 1 },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -113,19 +117,20 @@ export default function BlogPage() {
         <section className="py-20 bg-gradient-to-br from-primary/10 to-primary/5">
           <div className="container mx-auto px-4 text-center">
             <Badge variant="outline" className="mb-4">
-              Travel Blog
+              Blog Du lịch
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
-              Travel Stories & Expert Tips
+              Câu chuyện & Mẹo từ chuyên gia
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-balance">
-              Discover insider secrets, seasonal guides, and destination highlights from our travel experts. Get
-              inspired for your next American adventure.
+              Khám phá bí quyết, cẩm nang theo mùa và điểm đến nổi bật từ các
+              chuyên gia du lịch. Truyền cảm hứng cho hành trình Mỹ tiếp theo
+              của bạn.
             </p>
             <div className="max-w-md mx-auto">
               <div className="flex gap-2">
-                <Input placeholder="Search articles..." className="flex-1" />
-                <Button>Search</Button>
+                <Input placeholder="Tìm kiếm bài viết..." className="flex-1" />
+                <Button>Tìm kiếm</Button>
               </div>
             </div>
           </div>
@@ -135,8 +140,10 @@ export default function BlogPage() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="mb-8">
-              <Badge className="mb-4">Featured Article</Badge>
-              <h2 className="text-3xl font-bold text-foreground">Editor's Pick</h2>
+              <Badge className="mb-4">Bài viết nổi bật</Badge>
+              <h2 className="text-3xl font-bold text-foreground">
+                Biên tập viên chọn
+              </h2>
             </div>
 
             <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -153,8 +160,12 @@ export default function BlogPage() {
                   <Badge variant="outline" className="w-fit mb-4">
                     {featuredPost.category}
                   </Badge>
-                  <h3 className="text-2xl font-bold text-foreground mb-4 text-balance">{featuredPost.title}</h3>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">{featuredPost.excerpt}</p>
+                  <h3 className="text-2xl font-bold text-foreground mb-4 text-balance">
+                    {featuredPost.title}
+                  </h3>
+                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                    {featuredPost.excerpt}
+                  </p>
 
                   <div className="flex items-center gap-4 mb-6">
                     <div className="flex items-center gap-2">
@@ -165,7 +176,9 @@ export default function BlogPage() {
                         height={32}
                         className="rounded-full"
                       />
-                      <span className="text-sm font-medium">{featuredPost.author}</span>
+                      <span className="text-sm font-medium">
+                        {featuredPost.author}
+                      </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -181,7 +194,7 @@ export default function BlogPage() {
 
                   <Button asChild className="w-fit">
                     <Link href={`/blog/${featuredPost.slug}`}>
-                      Read Full Article
+                      Đọc bài viết
                       <ArrowRightIcon className="w-4 h-4 ml-2" />
                     </Link>
                   </Button>
@@ -199,7 +212,7 @@ export default function BlogPage() {
               <div className="lg:col-span-1">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4">Categories</h3>
+                    <h3 className="font-semibold mb-4">Danh mục</h3>
                     <div className="space-y-2">
                       {categories.map((category, index) => (
                         <button
@@ -223,14 +236,14 @@ export default function BlogPage() {
                 {/* Newsletter Signup */}
                 <Card className="mt-6">
                   <CardContent className="p-6">
-                    <h3 className="font-semibold mb-2">Stay Updated</h3>
+                    <h3 className="font-semibold mb-2">Nhận tin mới</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Get the latest travel tips and destination guides delivered to your inbox.
+                      Nhận mẹo du lịch và cẩm nang điểm đến mới nhất qua email.
                     </p>
                     <div className="space-y-2">
-                      <Input placeholder="Your email address" type="email" />
+                      <Input placeholder="Địa chỉ email của bạn" type="email" />
                       <Button className="w-full" size="sm">
-                        Subscribe
+                        Đăng ký
                       </Button>
                     </div>
                   </CardContent>
@@ -240,23 +253,38 @@ export default function BlogPage() {
               {/* Posts Grid */}
               <div className="lg:col-span-3">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-bold">Latest Articles</h2>
-                  <p className="text-muted-foreground">{blogPosts.length} articles</p>
+                  <h2 className="text-2xl font-bold">Bài viết mới nhất</h2>
+                  <p className="text-muted-foreground">
+                    {blogPosts.length} bài viết
+                  </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
                   {blogPosts.map((post, index) => (
-                    <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    <Card
+                      key={index}
+                      className="overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                    >
                       <div className="relative aspect-[4/3]">
-                        <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
+                        <Image
+                          src={post.image || "/placeholder.svg"}
+                          alt={post.title}
+                          fill
+                          className="object-cover"
+                        />
                         <div className="absolute top-4 left-4">
-                          <Badge variant="secondary" className="bg-background/90 text-foreground">
+                          <Badge
+                            variant="secondary"
+                            className="bg-background/90 text-foreground"
+                          >
                             {post.category}
                           </Badge>
                         </div>
                       </div>
                       <CardContent className="p-6">
-                        <h3 className="font-semibold text-lg mb-3 text-balance line-clamp-2">{post.title}</h3>
+                        <h3 className="font-semibold text-lg mb-3 text-balance line-clamp-2">
+                          {post.title}
+                        </h3>
                         <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
                           {post.excerpt}
                         </p>
@@ -269,7 +297,9 @@ export default function BlogPage() {
                             height={24}
                             className="rounded-full"
                           />
-                          <span className="text-xs font-medium">{post.author}</span>
+                          <span className="text-xs font-medium">
+                            {post.author}
+                          </span>
                         </div>
 
                         <div className="flex items-center justify-between">
@@ -285,7 +315,7 @@ export default function BlogPage() {
                           </div>
                           <Button variant="ghost" size="sm" asChild>
                             <Link href={`/blog/${post.slug}`}>
-                              Read More
+                              Đọc tiếp
                               <ArrowRightIcon className="w-3 h-3 ml-1" />
                             </Link>
                           </Button>
@@ -297,8 +327,12 @@ export default function BlogPage() {
 
                 {/* Load More */}
                 <div className="text-center mt-12">
-                  <Button variant="outline" size="lg" className="bg-transparent">
-                    Load More Articles
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="bg-transparent"
+                  >
+                    Xem thêm bài viết
                   </Button>
                 </div>
               </div>
@@ -309,12 +343,19 @@ export default function BlogPage() {
         {/* CTA Section */}
         <section className="py-20 bg-primary text-primary-foreground">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Turn Inspiration into Adventure?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Sẵn sàng biến cảm hứng thành chuyến đi?
+            </h2>
             <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto text-balance">
-              Browse our curated tours and start planning your next unforgettable American journey.
+              Khám phá các tour chọn lọc của chúng tôi và bắt đầu lên kế hoạch
+              cho hành trình Mỹ đáng nhớ tiếp theo.
             </p>
-            <Button size="lg" className="bg-background text-foreground hover:bg-background/90" asChild>
-              <Link href="/#tours">Explore Our Tours</Link>
+            <Button
+              size="lg"
+              className="bg-background text-foreground hover:bg-background/90"
+              asChild
+            >
+              <Link href="/#tours">Khám phá Tour</Link>
             </Button>
           </div>
         </section>
@@ -322,5 +363,5 @@ export default function BlogPage() {
 
       <SiteFooter />
     </div>
-  )
+  );
 }

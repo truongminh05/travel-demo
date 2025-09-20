@@ -1,6 +1,5 @@
-"use client"
+"use client";
 
-import { useState } from "react"
 import {
   UserIcon,
   CalendarIcon,
@@ -14,141 +13,182 @@ import {
   EditIcon,
   TrashIcon,
   EyeIcon,
-} from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
-import Image from "next/image"
-import Link from "next/link"
+  LanguagesIcon,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import Image from "next/image";
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function AccountPage() {
-  const [activeTab, setActiveTab] = useState("overview")
-  const [isEditing, setIsEditing] = useState(false)
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const router = useRouter();
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login?redirect=/account");
+    }
+  }, [status, router]);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main St, Denver, CO 80202",
-    bio: "Adventure enthusiast who loves exploring America's national parks and hidden gems.",
-    avatar: "/placeholder.svg?height=100&width=100",
-  })
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "+84 912 345 678",
+    address: "123 Đường Chính, Quận 1, TP. HCM",
+    bio: "Người đam mê khám phá...",
+    avatar: "/placeholder-user.jpg",
+  });
+  useEffect(() => {
+    if (user) {
+      const nameParts = user.name?.split(" ") || ["", ""];
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      setUserProfile((prev) => ({
+        ...prev,
+        firstName: firstName,
+        lastName: lastName,
+        email: user.email || "",
+        avatar: user.image || "/placeholder-user.jpg",
+      }));
+    }
+  }, [user]);
+
+  const handleProfileUpdate = (
+    field: keyof typeof userProfile,
+    value: string
+  ) => {
+    setUserProfile((prev) => ({ ...prev, [field]: value }));
+  };
 
   const [preferences, setPreferences] = useState({
     emailNotifications: true,
     smsNotifications: false,
     marketingEmails: true,
     bookingReminders: true,
-  })
+  });
 
-  // Sample data - in a real app, this would come from an API
   const bookingHistory = [
     {
       id: "TRV-2024-001234",
-      tour: "Mountain Retreat in Colorado",
+      tour: "Kỳ nghỉ dưỡng trên núi ở Colorado",
       location: "Aspen, Colorado",
       image: "/mountain-retreat-colorado-aspen-snow-peaks.png",
-      date: "March 15, 2024",
+      date: "15/03/2024",
       status: "upcoming",
       guests: 2,
       total: 1870,
-      bookingDate: "January 20, 2024",
+      bookingDate: "20/01/2024",
     },
     {
       id: "TRV-2023-005678",
-      tour: "Coastal Adventure in Maine",
-      location: "Acadia National Park",
+      tour: "Hành trình ven biển Maine",
+      location: "Công viên quốc gia Acadia",
       image: "/placeholder.svg?height=200&width=300",
-      date: "August 10, 2023",
+      date: "10/08/2023",
       status: "completed",
       guests: 1,
       total: 1299,
-      bookingDate: "June 15, 2023",
+      bookingDate: "15/06/2023",
       rating: 5,
     },
     {
       id: "TRV-2023-003456",
-      tour: "Desert Explorer Arizona",
+      tour: "Khám phá sa mạc Arizona",
       location: "Sedona, Arizona",
       image: "/sedona-arizona-red-rocks-desert-landscape-sunset.png",
-      date: "November 5, 2023",
+      date: "05/11/2023",
       status: "completed",
       guests: 2,
       total: 2150,
-      bookingDate: "September 20, 2023",
+      bookingDate: "20/09/2023",
       rating: 4,
     },
-  ]
+  ];
 
   const savedTours = [
     {
       id: "beach-resort-myrtle",
-      title: "Beach Resort Getaway",
+      title: "Khu nghỉ dưỡng biển Myrtle",
       location: "Myrtle Beach, SC",
       image: "/beach-resort-myrtle-beach-ocean-waves-palm-trees.png",
       price: 699,
       originalPrice: 899,
       rating: 4.6,
-      duration: "4 days",
+      duration: "4 ngày",
       savedDate: "2024-01-15",
     },
     {
       id: "napa-valley-wine",
-      title: "Napa Valley Wine Tour",
+      title: "Tour rượu vang Napa Valley",
       location: "Napa Valley, CA",
       image: "/napa-valley-vineyard-wine-tasting-rolling-hills-gr.png",
       price: 1299,
       rating: 4.9,
-      duration: "3 days",
+      duration: "3 ngày",
       savedDate: "2024-01-10",
     },
     {
       id: "yellowstone-adventure",
-      title: "Yellowstone National Park",
+      title: "Khám phá Yellowstone",
       location: "Wyoming",
       image: "/yellowstone-national-park-geysers-wildlife-camping.png",
       price: 1599,
       rating: 4.8,
-      duration: "7 days",
+      duration: "7 ngày",
       savedDate: "2024-01-05",
     },
-  ]
-
-  const handleProfileUpdate = (field: string, value: string) => {
-    setUserProfile((prev) => ({ ...prev, [field]: value }))
-  }
+  ];
 
   const handlePreferenceChange = (field: string, value: boolean) => {
-    setPreferences((prev) => ({ ...prev, [field]: value }))
-  }
+    setPreferences((prev) => ({ ...prev, [field]: value }));
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "upcoming":
-        return <Badge className="bg-blue-100 text-blue-800">Upcoming</Badge>
+        return <Badge className="bg-blue-100 text-blue-800">Sắp tới</Badge>;
       case "completed":
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>
+        return (
+          <Badge className="bg-green-100 text-green-800">Hoàn thành</Badge>
+        );
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>
+        return <Badge className="bg-red-100 text-red-800">Đã hủy</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
   const removeSavedTour = (tourId: string) => {
-    // In a real app, this would make an API call
-    console.log("Removing saved tour:", tourId)
+    console.log("Xóa tour đã lưu:", tourId);
+  };
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Đang tải dữ liệu tài khoản...</p>
+      </div>
+    );
   }
 
+  if (!session) {
+    return null;
+  }
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -159,45 +199,57 @@ export default function AccountPage() {
           <div className="flex items-center gap-4 mb-8">
             <Avatar className="w-16 h-16">
               <AvatarImage
-                src={userProfile.avatar || "/placeholder.svg"}
+                src={userProfile.avatar}
                 alt={`${userProfile.firstName} ${userProfile.lastName}`}
               />
               <AvatarFallback>
-                {userProfile.firstName[0]}
-                {userProfile.lastName[0]}
+                {userProfile.firstName?.[0]}
+                {userProfile.lastName?.[0]}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Welcome back, {userProfile.firstName}!</h1>
-              <p className="text-muted-foreground">Manage your bookings, saved tours, and account settings</p>
+              <h1 className="text-3xl font-bold text-foreground">
+                Chào mừng trở lại, {userProfile.firstName.split(" ")[0]}!
+              </h1>
+              <p className="text-muted-foreground">
+                Quản lý đặt chỗ, tour đã lưu và cài đặt tài khoản
+              </p>
             </div>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-8"
+          >
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <UserIcon className="w-4 h-4" />
-                Overview
+                Tổng quan
               </TabsTrigger>
               <TabsTrigger value="bookings" className="flex items-center gap-2">
                 <CalendarIcon className="w-4 h-4" />
-                Bookings
+                Đặt chỗ
               </TabsTrigger>
               <TabsTrigger value="wishlist" className="flex items-center gap-2">
                 <HeartIcon className="w-4 h-4" />
-                Wishlist
+                Yêu thích
               </TabsTrigger>
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <SettingsIcon className="w-4 h-4" />
-                Profile
+                Hồ sơ
               </TabsTrigger>
-              <TabsTrigger value="preferences" className="flex items-center gap-2">
+              <TabsTrigger
+                value="preferences"
+                className="flex items-center gap-2"
+              >
                 <BellIcon className="w-4 h-4" />
-                Preferences
+                Thông báo
               </TabsTrigger>
             </TabsList>
 
-            {/* Overview Tab */}
+            {/* Nội dung các tab */}
+            {/* === Tổng quan === */}
             <TabsContent value="overview" className="space-y-8">
               <div className="grid md:grid-cols-3 gap-6">
                 <Card>
@@ -208,7 +260,9 @@ export default function AccountPage() {
                       </div>
                       <div>
                         <p className="text-2xl font-bold">3</p>
-                        <p className="text-sm text-muted-foreground">Total Bookings</p>
+                        <p className="text-sm text-muted-foreground">
+                          Tổng số đặt chỗ
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -221,8 +275,12 @@ export default function AccountPage() {
                         <HeartIcon className="w-6 h-6 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">{savedTours.length}</p>
-                        <p className="text-sm text-muted-foreground">Saved Tours</p>
+                        <p className="text-2xl font-bold">
+                          {savedTours.length}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Tour đã lưu
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -236,17 +294,19 @@ export default function AccountPage() {
                       </div>
                       <div>
                         <p className="text-2xl font-bold">4.7</p>
-                        <p className="text-sm text-muted-foreground">Avg Rating Given</p>
+                        <p className="text-sm text-muted-foreground">
+                          Điểm đánh giá trung bình
+                        </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Recent Activity */}
+              {/* Hoạt động gần đây */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+                  <CardTitle>Hoạt động gần đây</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -255,11 +315,15 @@ export default function AccountPage() {
                         <CalendarIcon className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium">Upcoming trip to Colorado</p>
-                        <p className="text-sm text-muted-foreground">Departing March 15, 2024</p>
+                        <p className="font-medium">
+                          Chuyến đi sắp tới đến Colorado
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Khởi hành ngày 15/03/2024
+                        </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        View Details
+                        Xem chi tiết
                       </Button>
                     </div>
 
@@ -268,11 +332,15 @@ export default function AccountPage() {
                         <HeartIcon className="w-5 h-5 text-green-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium">Saved Beach Resort Getaway</p>
-                        <p className="text-sm text-muted-foreground">Added to wishlist</p>
+                        <p className="font-medium">
+                          Đã lưu Khu nghỉ dưỡng biển Myrtle
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Đã thêm vào yêu thích
+                        </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        View Tour
+                        Xem tour
                       </Button>
                     </div>
                   </div>
@@ -280,12 +348,12 @@ export default function AccountPage() {
               </Card>
             </TabsContent>
 
-            {/* Bookings Tab */}
+            {/* === Đặt chỗ === */}
             <TabsContent value="bookings" className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Your Bookings</h2>
+                <h2 className="text-2xl font-bold">Đặt chỗ của bạn</h2>
                 <Button asChild>
-                  <Link href="/#tours">Book New Tour</Link>
+                  <Link href="/#tours">Đặt tour mới</Link>
                 </Button>
               </div>
 
@@ -305,7 +373,9 @@ export default function AccountPage() {
 
                         <div className="md:col-span-2">
                           <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-lg">{booking.tour}</h3>
+                            <h3 className="font-semibold text-lg">
+                              {booking.tour}
+                            </h3>
                             {getStatusBadge(booking.status)}
                           </div>
                           <div className="space-y-1 text-sm text-muted-foreground">
@@ -317,28 +387,42 @@ export default function AccountPage() {
                               <CalendarIcon className="w-4 h-4" />
                               <span>{booking.date}</span>
                             </div>
-                            <p>Booking ID: {booking.id}</p>
-                            <p>Guests: {booking.guests}</p>
+                            <p>Mã đặt chỗ: {booking.id}</p>
+                            <p>Số khách: {booking.guests}</p>
                           </div>
                           {booking.rating && (
                             <div className="flex items-center gap-1 mt-2">
                               <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                              <span className="text-sm">You rated this {booking.rating}/5</span>
+                              <span className="text-sm">
+                                Bạn đã đánh giá {booking.rating}/5
+                              </span>
                             </div>
                           )}
                         </div>
 
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-primary">${booking.total}</p>
-                          <p className="text-sm text-muted-foreground mb-4">Total paid</p>
+                          <p className="text-2xl font-bold text-primary">
+                            ${booking.total}
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Tổng thanh toán
+                          </p>
                           <div className="space-y-2">
-                            <Button variant="outline" size="sm" className="w-full bg-transparent">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full bg-transparent"
+                            >
                               <EyeIcon className="w-4 h-4 mr-2" />
-                              View Details
+                              Xem chi tiết
                             </Button>
                             {booking.status === "upcoming" && (
-                              <Button variant="outline" size="sm" className="w-full bg-transparent">
-                                Manage Booking
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full bg-transparent"
+                              >
+                                Quản lý đặt chỗ
                               </Button>
                             )}
                           </div>
@@ -350,18 +434,25 @@ export default function AccountPage() {
               </div>
             </TabsContent>
 
-            {/* Wishlist Tab */}
+            {/* === Yêu thích === */}
             <TabsContent value="wishlist" className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Your Wishlist</h2>
-                <p className="text-muted-foreground">{savedTours.length} saved tours</p>
+                <h2 className="text-2xl font-bold">Tour yêu thích của bạn</h2>
+                <p className="text-muted-foreground">
+                  {savedTours.length} tour đã lưu
+                </p>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {savedTours.map((tour) => (
                   <Card key={tour.id} className="overflow-hidden">
                     <div className="relative aspect-[4/3]">
-                      <Image src={tour.image || "/placeholder.svg"} alt={tour.title} fill className="object-cover" />
+                      <Image
+                        src={tour.image || "/placeholder.svg"}
+                        alt={tour.title}
+                        fill
+                        className="object-cover"
+                      />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -382,7 +473,9 @@ export default function AccountPage() {
                           <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           <span className="text-sm">{tour.rating}</span>
                         </div>
-                        <span className="text-sm text-muted-foreground">• {tour.duration}</span>
+                        <span className="text-sm text-muted-foreground">
+                          • {tour.duration}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
@@ -391,10 +484,12 @@ export default function AccountPage() {
                               ${tour.originalPrice}
                             </span>
                           )}
-                          <span className="text-lg font-bold text-primary">${tour.price}</span>
+                          <span className="text-lg font-bold text-primary">
+                            ${tour.price}
+                          </span>
                         </div>
                         <Button size="sm" asChild>
-                          <Link href={`/tours/${tour.id}`}>View Tour</Link>
+                          <Link href={`/tours/${tour.id}`}>Xem tour</Link>
                         </Button>
                       </div>
                     </CardContent>
@@ -403,80 +498,95 @@ export default function AccountPage() {
               </div>
             </TabsContent>
 
-            {/* Profile Tab */}
+            {/* === Hồ sơ === */}
             <TabsContent value="profile" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Profile Settings</h2>
-                <Button variant={isEditing ? "default" : "outline"} onClick={() => setIsEditing(!isEditing)}>
+              <div className="grid md:grid-cols-2 gap-8">
+                <h2 className="text-2xl font-bold">Cài đặt hồ sơ</h2>
+                <Button
+                  variant={isEditing ? "default" : "outline"}
+                  onClick={() => setIsEditing(!isEditing)}
+                >
                   <EditIcon className="w-4 h-4 mr-2" />
-                  {isEditing ? "Save Changes" : "Edit Profile"}
+                  {isEditing ? "Lưu thay đổi" : "Chỉnh sửa hồ sơ"}
                 </Button>
               </div>
 
               <div className="grid md:grid-cols-2 gap-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
+                    <CardTitle>Thông tin cá nhân</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="firstName">First Name</Label>
+                        <Label htmlFor="firstName">Tên</Label>
                         <Input
                           id="firstName"
                           value={userProfile.firstName}
-                          onChange={(e) => handleProfileUpdate("firstName", e.target.value)}
+                          onChange={(e) =>
+                            handleProfileUpdate("firstName", e.target.value)
+                          }
                           disabled={!isEditing}
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName">Last Name</Label>
+                        <Label htmlFor="lastName">Họ</Label>
                         <Input
                           id="lastName"
                           value={userProfile.lastName}
-                          onChange={(e) => handleProfileUpdate("lastName", e.target.value)}
+                          onChange={(e) =>
+                            handleProfileUpdate("lastName", e.target.value)
+                          }
                           disabled={!isEditing}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email">Địa chỉ email</Label>
                       <Input
                         id="email"
                         type="email"
                         value={userProfile.email}
-                        onChange={(e) => handleProfileUpdate("email", e.target.value)}
+                        onChange={(e) =>
+                          handleProfileUpdate("email", e.target.value)
+                        }
                         disabled={!isEditing}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone">Số điện thoại</Label>
                       <Input
                         id="phone"
                         value={userProfile.phone}
-                        onChange={(e) => handleProfileUpdate("phone", e.target.value)}
+                        onChange={(e) =>
+                          handleProfileUpdate("phone", e.target.value)
+                        }
                         disabled={!isEditing}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="address">Address</Label>
+                      <Label htmlFor="address">Địa chỉ</Label>
                       <Input
                         id="address"
                         value={userProfile.address}
-                        onChange={(e) => handleProfileUpdate("address", e.target.value)}
+                        onChange={(e) =>
+                          handleProfileUpdate("address", e.target.value)
+                        }
                         disabled={!isEditing}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="bio">Bio</Label>
+                      <Label htmlFor="bio">Giới thiệu</Label>
                       <Textarea
                         id="bio"
                         value={userProfile.bio}
-                        onChange={(e) => handleProfileUpdate("bio", e.target.value)}
+                        onChange={(e) =>
+                          handleProfileUpdate("bio", e.target.value)
+                        }
                         disabled={!isEditing}
                         rows={3}
                       />
@@ -486,97 +596,138 @@ export default function AccountPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Account Actions</CardTitle>
+                    <CardTitle>Hành động tài khoản</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start bg-transparent"
+                    >
                       <CreditCardIcon className="w-4 h-4 mr-2" />
-                      Payment Methods
+                      Phương thức thanh toán
                     </Button>
 
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start bg-transparent"
+                    >
                       <SettingsIcon className="w-4 h-4 mr-2" />
-                      Change Password
+                      Đổi mật khẩu
                     </Button>
 
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start bg-transparent"
+                    >
                       <UserIcon className="w-4 h-4 mr-2" />
-                      Download My Data
+                      Tải xuống dữ liệu của tôi
                     </Button>
 
                     <Separator />
 
-                    <Button variant="destructive" className="w-full justify-start">
+                    <Button
+                      variant="destructive"
+                      className="w-full justify-start"
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                    >
                       <LogOutIcon className="w-4 h-4 mr-2" />
-                      Sign Out
+                      Đăng xuất
                     </Button>
                   </CardContent>
                 </Card>
               </div>
             </TabsContent>
 
-            {/* Preferences Tab */}
+            {/* === Thông báo === */}
             <TabsContent value="preferences" className="space-y-6">
-              <h2 className="text-2xl font-bold">Notification Preferences</h2>
+              <h2 className="text-2xl font-bold">Tùy chọn thông báo</h2>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Communication Settings</CardTitle>
+                  <CardTitle>Cài đặt liên lạc</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label htmlFor="emailNotifications" className="text-base font-medium">
-                        Email Notifications
+                      <Label
+                        htmlFor="emailNotifications"
+                        className="text-base font-medium"
+                      >
+                        Thông báo qua Email
                       </Label>
-                      <p className="text-sm text-muted-foreground">Receive booking confirmations and updates</p>
+                      <p className="text-sm text-muted-foreground">
+                        Nhận xác nhận đặt chỗ và cập nhật
+                      </p>
                     </div>
                     <Switch
                       id="emailNotifications"
                       checked={preferences.emailNotifications}
-                      onCheckedChange={(checked) => handlePreferenceChange("emailNotifications", checked)}
+                      onCheckedChange={(checked) =>
+                        handlePreferenceChange("emailNotifications", checked)
+                      }
                     />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label htmlFor="smsNotifications" className="text-base font-medium">
-                        SMS Notifications
+                      <Label
+                        htmlFor="smsNotifications"
+                        className="text-base font-medium"
+                      >
+                        Thông báo qua SMS
                       </Label>
-                      <p className="text-sm text-muted-foreground">Get text messages for urgent updates</p>
+                      <p className="text-sm text-muted-foreground">
+                        Nhận tin nhắn cho các cập nhật khẩn
+                      </p>
                     </div>
                     <Switch
                       id="smsNotifications"
                       checked={preferences.smsNotifications}
-                      onCheckedChange={(checked) => handlePreferenceChange("smsNotifications", checked)}
+                      onCheckedChange={(checked) =>
+                        handlePreferenceChange("smsNotifications", checked)
+                      }
                     />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label htmlFor="marketingEmails" className="text-base font-medium">
-                        Marketing Emails
+                      <Label
+                        htmlFor="marketingEmails"
+                        className="text-base font-medium"
+                      >
+                        Email khuyến mãi
                       </Label>
-                      <p className="text-sm text-muted-foreground">Receive special offers and new tour announcements</p>
+                      <p className="text-sm text-muted-foreground">
+                        Nhận ưu đãi đặc biệt và tour mới
+                      </p>
                     </div>
                     <Switch
                       id="marketingEmails"
                       checked={preferences.marketingEmails}
-                      onCheckedChange={(checked) => handlePreferenceChange("marketingEmails", checked)}
+                      onCheckedChange={(checked) =>
+                        handlePreferenceChange("marketingEmails", checked)
+                      }
                     />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label htmlFor="bookingReminders" className="text-base font-medium">
-                        Booking Reminders
+                      <Label
+                        htmlFor="bookingReminders"
+                        className="text-base font-medium"
+                      >
+                        Nhắc nhở đặt chỗ
                       </Label>
-                      <p className="text-sm text-muted-foreground">Get reminders before your trip departure</p>
+                      <p className="text-sm text-muted-foreground">
+                        Nhận nhắc nhở trước chuyến đi
+                      </p>
                     </div>
                     <Switch
                       id="bookingReminders"
                       checked={preferences.bookingReminders}
-                      onCheckedChange={(checked) => handlePreferenceChange("bookingReminders", checked)}
+                      onCheckedChange={(checked) =>
+                        handlePreferenceChange("bookingReminders", checked)
+                      }
                     />
                   </div>
                 </CardContent>
@@ -588,5 +739,5 @@ export default function AccountPage() {
 
       <SiteFooter />
     </div>
-  )
+  );
 }

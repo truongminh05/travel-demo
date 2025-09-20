@@ -64,10 +64,10 @@ export function AdminSidebar() {
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
               >
                 <LogOutIcon className="h-5 w-5" />
-                <span className="sr-only">Logout</span>
+                <span className="sr-only">Đăng xuất</span>
               </Link>
             </TooltipTrigger>
-            <TooltipContent side="right">Logout</TooltipContent>
+            <TooltipContent side="right">Đăng xuất</TooltipContent>
           </Tooltip>
         </nav>
       </TooltipProvider>
