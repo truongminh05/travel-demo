@@ -6,10 +6,10 @@ import path from "path";
 // GET: /api/admin/tours/[id]
 export async function GET(
   req: NextRequest,
-  context: { params: Record<string, string | string[]> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id as string;
+    const { id } = await context.params;
 
     const { data, error } = await supabase
       .from("Tours")
@@ -34,10 +34,10 @@ export async function GET(
 // PATCH: cập nhật tour
 export async function PATCH(
   req: NextRequest,
-  context: { params: Record<string, string | string[]> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id as string;
+    const { id } = await context.params;
     const data = await req.formData();
     const imageFile: File | null = data.get("imageFile") as unknown as File;
     let imageUrl = (data.get("Image") as string) || "";
@@ -90,10 +90,10 @@ export async function PATCH(
 // DELETE: xóa tour
 export async function DELETE(
   req: NextRequest,
-  context: { params: Record<string, string | string[]> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id as string;
+    const { id } = await context.params;
 
     const { error } = await supabase.from("Tours").delete().eq("TourID", id);
 
