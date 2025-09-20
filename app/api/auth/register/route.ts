@@ -1,4 +1,4 @@
-// File: route.ts
+// File: app/api/auth/register/route.ts
 
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
@@ -7,8 +7,8 @@ import bcrypt from "bcrypt";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // THAY ĐỔI 1: Nhận firstName và lastName thay vì fullName
-    const { email, password, firstName, lastName, username, role } = body;
+    // Giữ nguyên việc nhận firstName và lastName
+    const { email, password, firstName, lastName, role } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -17,15 +17,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // THAY ĐỔI 2: Tạo fullName từ firstName và lastName
     const fullName = `${firstName || ""} ${lastName || ""}`.trim();
-
     if (!fullName) {
       return NextResponse.json(
         { success: false, message: "Họ và tên là bắt buộc" },
         { status: 400 }
       );
     }
+
+    // === THAY ĐỔI QUAN TRỌNG: TỰ ĐỘNG TẠO USERNAME ===
+    // 1. Lấy phần đầu của email
+    const emailPrefix = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
+    // 2. Tạo một chuỗi ngẫu nhiên ngắn
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    // 3. Ghép lại để tạo username duy nhất
+    const generatedUsername = `${emailPrefix}_${randomSuffix}`;
 
     // Hash mật khẩu
     const passwordHash = await bcrypt.hash(password, 10);
@@ -37,9 +43,9 @@ export async function POST(req: Request) {
         {
           Email: email,
           PasswordHash: passwordHash,
-          // THAY ĐỔI 3: Sử dụng biến fullName đã được tạo
           FullName: fullName,
-          Username: username || null,
+          // Sử dụng username đã được tạo tự động
+          Username: generatedUsername,
           Role: role || "user",
         },
       ])
@@ -48,19 +54,15 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Supabase insert error:", error);
-      // Cung cấp thông báo lỗi rõ ràng hơn
       if (error.code === "23505") {
-        // Lỗi unique constraint (ví dụ: email đã tồn tại)
         return NextResponse.json(
-          { success: false, message: "Email này đã được sử dụng." },
-          { status: 409 } // 409 Conflict
+          { success: false, message: "Email này đã được đăng ký." },
+          { status: 409 }
         );
       }
+      // Gửi lại thông báo lỗi cụ thể hơn từ Supabase để dễ debug
       return NextResponse.json(
-        {
-          success: false,
-          message: "Không thể tạo tài khoản do lỗi từ máy chủ.",
-        },
+        { success: false, message: `Lỗi từ cơ sở dữ liệu: ${error.message}` },
         { status: 500 }
       );
     }
