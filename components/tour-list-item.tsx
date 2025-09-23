@@ -21,7 +21,6 @@ interface TourListItemProps {
   reviewCount: number;
   duration: string;
   cancellation: "free" | "partial" | "none";
-  co2Impact: "low" | "medium" | "high";
   highlights: string[];
 }
 
@@ -35,7 +34,6 @@ export function TourListItem({
   reviewCount,
   duration,
   cancellation,
-  co2Impact,
   highlights = [], // Added default empty array to prevent undefined error
 }: TourListItemProps) {
   const getCancellationText = (type: string) => {
@@ -64,8 +62,6 @@ export function TourListItem({
     }
   };
 
-  const co2Badge = getCO2Badge(co2Impact);
-
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
       <CardContent className="p-0">
@@ -78,15 +74,6 @@ export function TourListItem({
               fill
               className="object-cover"
             />
-            <div className="absolute top-2 left-2">
-              <Badge
-                variant={co2Badge.variant}
-                className="bg-background/90 text-foreground text-xs"
-              >
-                <LeafIcon className="w-3 h-3 mr-1" />
-                {co2Badge.text}
-              </Badge>
-            </div>
             {originalPrice && (
               <div className="absolute top-2 right-2">
                 <Badge

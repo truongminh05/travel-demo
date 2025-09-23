@@ -3,7 +3,15 @@
 "use client";
 
 import { useState } from "react";
-import { FilterIcon, ChevronDownIcon } from "lucide-react";
+// === THAY ĐỔI CÁCH IMPORT TẠI ĐÂY ===
+import format from "date-fns/format";
+import vi from "date-fns/locale/vi";
+import type { DateRange } from "react-day-picker";
+import {
+  FilterIcon,
+  ChevronDownIcon,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,14 +30,19 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 export interface FilterState {
   priceRange: [number, number];
   duration: string[];
   rating: number;
-  co2Impact: string[];
-  cancellation: string[];
   location: string[];
+  dateRange: DateRange | undefined;
   sortBy: string;
 }
 
@@ -49,17 +62,16 @@ export function TourFilters({
     price: true,
     duration: true,
     rating: true,
-    sustainability: true,
-    cancellation: true,
     location: true,
+    date: true,
   });
 
   const updateFilter = (key: keyof FilterState, value: any) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 
-  const toggleArrayFilter = (key: keyof FilterState, value: string) => {
-    const currentArray = filters[key] as string[];
+  const toggleArrayFilter = (key: "duration" | "location", value: string) => {
+    const currentArray = filters[key];
     const newArray = currentArray.includes(value)
       ? currentArray.filter((item) => item !== value)
       : [...currentArray, value];
@@ -68,13 +80,12 @@ export function TourFilters({
 
   const clearAllFilters = () => {
     onFiltersChange({
-      priceRange: [0, 50000000], // Cập nhật khoảng giá cho VNĐ
+      priceRange: [0, 50000000],
       duration: [],
       rating: 0,
-      co2Impact: [],
-      cancellation: [],
       location: [],
       sortBy: "featured",
+      dateRange: undefined,
     });
   };
 
@@ -83,9 +94,8 @@ export function TourFilters({
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 50000000) count++;
     if (filters.duration.length > 0) count++;
     if (filters.rating > 0) count++;
-    if (filters.co2Impact.length > 0) count++;
-    if (filters.cancellation.length > 0) count++;
     if (filters.location.length > 0) count++;
+    if (filters.dateRange) count++;
     return count;
   };
 
@@ -93,13 +103,11 @@ export function TourFilters({
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // Format giá tiền sang VNĐ
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("vi-VN", {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(value);
-  };
 
   return (
     <div className={isSticky ? "sticky top-4" : ""}>
@@ -138,7 +146,7 @@ export function TourFilters({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
+          <div>
             <Label className="text-sm font-medium">Sắp xếp theo</Label>
             <Select
               value={filters.sortBy}
@@ -152,12 +160,6 @@ export function TourFilters({
                 <SelectItem value="price-low">Giá: Thấp đến Cao</SelectItem>
                 <SelectItem value="price-high">Giá: Cao đến Thấp</SelectItem>
                 <SelectItem value="rating">Đánh giá cao nhất</SelectItem>
-                <SelectItem value="duration-short">
-                  Thời gian: Ngắn nhất
-                </SelectItem>
-                <SelectItem value="duration-long">
-                  Thời gian: Dài nhất
-                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -181,7 +183,6 @@ export function TourFilters({
                 max={50000000}
                 min={0}
                 step={1000000}
-                className="w-full"
               />
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>{formatCurrency(filters.priceRange[0])}</span>
@@ -191,6 +192,62 @@ export function TourFilters({
           </Collapsible>
 
           <Collapsible
+            open={openSections.date}
+            onOpenChange={() => toggleSection("date")}
+          >
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-left">
+              <Label className="text-sm font-medium">Khoảng ngày</Label>
+              <ChevronDownIcon
+                className={`w-4 h-4 transition-transform ${
+                  openSections.date ? "rotate-180" : ""
+                }`}
+              />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-3 pt-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant={"outline"}
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {filters.dateRange?.from ? (
+                      filters.dateRange.to ? (
+                        <>
+                          {format(filters.dateRange.from, "LLL dd, y", {
+                            locale: vi,
+                          })}{" "}
+                          -{" "}
+                          {format(filters.dateRange.to, "LLL dd, y", {
+                            locale: vi,
+                          })}
+                        </>
+                      ) : (
+                        format(filters.dateRange.from, "LLL dd, y", {
+                          locale: vi,
+                        })
+                      )
+                    ) : (
+                      <span>Chọn khoảng ngày</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={filters.dateRange?.from}
+                    selected={filters.dateRange}
+                    onSelect={(range) => updateFilter("dateRange", range)}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* <Collapsible
             open={openSections.duration}
             onOpenChange={() => toggleSection("duration")}
           >
@@ -220,7 +277,7 @@ export function TourFilters({
                 )
               )}
             </CollapsibleContent>
-          </Collapsible>
+          </Collapsible> */}
 
           <Collapsible
             open={openSections.location}

@@ -34,13 +34,13 @@ export async function GET(
 // PATCH: cập nhật tour
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = params; // Lỗi cú pháp Next.js mới sẽ không còn
     const data = await req.formData();
     const imageFile: File | null = data.get("imageFile") as unknown as File;
-    let imageUrl = (data.get("CoverImage") as string) || "";
+    let imageUrl = data.get("Image") as string; // Sử dụng Image
 
     if (imageFile && imageFile.size > 0) {
       const bytes = await imageFile.arrayBuffer();
@@ -48,20 +48,40 @@ export async function PATCH(
       const filename = `${Date.now()}-${imageFile.name.replace(/\s/g, "_")}`;
       const uploadsDir = path.join(process.cwd(), "public/uploads");
       const imagePath = path.join(uploadsDir, filename);
+
       await writeFile(imagePath, buffer);
       imageUrl = `/uploads/${filename}`;
     }
 
-    const updateData = {
+    // const updateData: { [key: string]: any } = {
+    //   Title: data.get("Title"),
+    //   Location: data.get("Location"), // << Sửa thành Location
+    //   Price: Number(data.get("Price")),
+    //   OriginalPrice: data.get("OriginalPrice")
+    //     ? Number(data.get("OriginalPrice"))
+    //     : null,
+    //   Status: data.get("Status"),
+    //   Image: imageUrl, // << Sửa thành Image
+    // };
+    const startDate = data.get("StartDate");
+    const endDate = data.get("EndDate");
+    const updateData: { [key: string]: any } = {
       Title: data.get("Title"),
       Location: data.get("Location"),
+      Description: data.get("Description"),
       Price: Number(data.get("Price")),
+      Category: data.get("Category"),
+      StartDate: startDate ? new Date(startDate as string).toISOString() : null,
+      EndDate: endDate ? new Date(endDate as string).toISOString() : null,
       OriginalPrice: data.get("OriginalPrice")
         ? Number(data.get("OriginalPrice"))
         : null,
+      Duration: data.get("Duration"),
       Status: data.get("Status"),
-      CoverImage: imageUrl,
     };
+    if (imageFile && imageFile.size > 0) {
+      updateData.Image = imageUrl;
+    }
 
     const { error } = await supabase
       .from("Tours")
@@ -71,7 +91,7 @@ export async function PATCH(
     if (error) {
       console.error("PATCH tour error:", error);
       return NextResponse.json(
-        { message: "Lỗi khi cập nhật tour" },
+        { message: `Lỗi khi cập nhật tour: ${error.message}` },
         { status: 500 }
       );
     }

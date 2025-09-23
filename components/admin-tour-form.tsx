@@ -1,3 +1,5 @@
+// File: components/admin-tour-form.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -16,7 +18,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
 
-// Định nghĩa kiểu dữ liệu cho formData để code an toàn hơn
+// Định nghĩa kiểu dữ liệu cho formData
 interface TourFormData {
   TourID?: number;
   Title: string;
@@ -25,10 +27,13 @@ interface TourFormData {
   Price: string | number;
   OriginalPrice?: string | number | null;
   Duration: string;
+  Category: string;
   Status: string;
+  StartDate: string;
+  EndDate: string;
   Description: string;
-  CoverImage: string;
-  [key: string]: any; // Cho phép các thuộc tính khác
+  Image: string;
+  [key: string]: any;
 }
 
 export function AdminTourForm({
@@ -40,6 +45,19 @@ export function AdminTourForm({
 }) {
   const router = useRouter();
   const { toast } = useToast();
+
+  // === THÊM HÀM BỊ THIẾU VÀO ĐÂY ===
+  const formatDateForInput = (dateString: string | undefined): string => {
+    if (!dateString) return "";
+    try {
+      // Chuyển đổi ngày từ CSDL sang định dạng YYYY-MM-DD cho input
+      return new Date(dateString).toISOString().split("T")[0];
+    } catch (e) {
+      console.error("Invalid date format:", dateString);
+      return "";
+    }
+  };
+
   const [formData, setFormData] = useState<TourFormData>({
     Title: "",
     TourSlug: "",
@@ -49,17 +67,14 @@ export function AdminTourForm({
     Duration: "",
     Status: "Draft",
     Description: "",
-    CoverImage: "",
-    CancellationPolicy: "none",
-    CO2Impact: "low",
-    MaxGuests: "",
-    MinAge: "",
-    Difficulty: "Moderate",
-    DepartureDate: "",
+    Image: "", // Sử dụng 'Image' cho nhất quán
+    Category: "Tour trong nước",
+    StartDate: formatDateForInput(tourData?.StartDate),
+    EndDate: formatDateForInput(tourData?.EndDate),
     ...tourData,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(
-    tourData?.CoverImage || null
+    tourData?.Image || null // Sử dụng 'Image'
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,16 +134,16 @@ export function AdminTourForm({
         );
       }
       toast({
-        title: "Success!",
-        description: `Tour has been successfully ${
-          isEditing ? "updated" : "created"
-        }.`,
+        title: "Thành công!",
+        description: `Tour đã được ${
+          isEditing ? "cập nhật" : "tạo"
+        } thành công.`,
       });
       router.push("/admin/tours");
       router.refresh();
     } catch (error) {
       toast({
-        title: "Error",
+        title: "Lỗi",
         description: (error as Error).message,
         variant: "destructive",
       });
@@ -139,121 +154,175 @@ export function AdminTourForm({
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6">
+      {/* Các trường input Title và Slug */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="Title">Tour Title</Label>
+          <Label htmlFor="Title">Tên Tour</Label>
           <Input
             id="Title"
             name="Title"
-            value={formData.Title}
+            value={formData.Title || ""}
             onChange={handleTextChange}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="TourSlug">Tour Slug (URL)</Label>
+          <Label htmlFor="TourSlug">Slug (URL)</Label>
           <Input
             id="TourSlug"
             name="TourSlug"
-            value={formData.TourSlug}
+            value={formData.TourSlug || ""}
             onChange={handleTextChange}
             required
             disabled={isEditing}
           />
         </div>
       </div>
+
+      {/* Các trường Location và Description */}
       <div className="space-y-2">
-        <Label htmlFor="Location">Location</Label>
+        <Label htmlFor="Location">Địa điểm</Label>
         <Input
           id="Location"
           name="Location"
-          value={formData.Location}
+          value={formData.Location || ""}
           onChange={handleTextChange}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="Description">Description</Label>
+        <Label htmlFor="Description">Mô tả</Label>
         <Textarea
           id="Description"
           name="Description"
-          value={formData.Description}
+          value={formData.Description || ""}
           onChange={handleTextChange}
           rows={5}
         />
       </div>
+
+      {/* Các trường Price và OriginalPrice */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="Price">Price ($)</Label>
+          <Label htmlFor="Price">Giá (VNĐ)</Label>
           <Input
             id="Price"
             name="Price"
             type="number"
-            value={formData.Price}
+            value={formData.Price || ""}
             onChange={handleTextChange}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="OriginalPrice">Original Price ($)</Label>
+          <Label htmlFor="OriginalPrice">Giá gốc (VNĐ)</Label>
           <Input
             id="OriginalPrice"
             name="OriginalPrice"
             type="number"
-            value={String(formData.OriginalPrice ?? "")}
+            value={formData.OriginalPrice || ""}
             onChange={handleTextChange}
           />
         </div>
       </div>
+
+      {/* Upload ảnh */}
       <div className="grid gap-3">
-        <Label htmlFor="ImageFile">Tour Image</Label>
+        <Label htmlFor="ImageFile">Ảnh đại diện</Label>
         <Input
           id="ImageFile"
           name="imageFile"
           type="file"
+          accept="image/*"
           onChange={handleImageChange}
         />
         {imagePreview && (
           <div className="mt-4 relative w-full h-48 border rounded-md overflow-hidden">
             <Image
               src={imagePreview}
-              alt="Image preview"
+              alt="Xem trước"
               layout="fill"
               objectFit="contain"
+              unoptimized
             />
           </div>
         )}
       </div>
+
+      {/* Các trường Duration, Category, Dates, Status */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="Duration">Duration</Label>
+          <Label htmlFor="Duration">Thời gian (ví dụ: 3 ngày 2 đêm)</Label>
           <Input
             id="Duration"
             name="Duration"
-            value={formData.Duration}
+            type="text"
+            value={formData.Duration || ""}
             onChange={handleTextChange}
           />
         </div>
-
-        {/* === Ô STATUS ĐÃ ĐƯỢC THÊM LẠI Ở ĐÂY === */}
         <div className="space-y-2">
-          <Label htmlFor="Status">Status</Label>
+          <Label htmlFor="Category">Danh mục</Label>
           <Select
-            name="Status"
-            onValueChange={(value) => handleSelectChange("Status", value)}
-            value={formData.Status}
+            name="Category"
+            onValueChange={(value) => handleSelectChange("Category", value)}
+            value={formData.Category}
           >
-            <SelectTrigger id="Status">
-              <SelectValue placeholder="Select status" />
+            <SelectTrigger id="Category">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Draft">Draft</SelectItem>
-              <SelectItem value="Published">Published</SelectItem>
+              <SelectItem value="Tour trong nước">Tour trong nước</SelectItem>
+              <SelectItem value="Gói Combo">Gói Combo</SelectItem>
+              <SelectItem value="Trải nghiệm">Trải nghiệm</SelectItem>
+              <SelectItem value="Tour mạo hiểm">Tour mạo hiểm</SelectItem>
+              <SelectItem value="Chuyến đi gia đình">
+                Chuyến đi gia đình
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="StartDate">Ngày bắt đầu</Label>
+          <Input
+            id="StartDate"
+            name="StartDate"
+            type="date"
+            value={formData.StartDate || ""}
+            onChange={handleTextChange}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="EndDate">Ngày kết thúc</Label>
+          <Input
+            id="EndDate"
+            name="EndDate"
+            type="date"
+            value={formData.EndDate || ""}
+            onChange={handleTextChange}
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="Status">Trạng thái</Label>
+        <Select
+          name="Status"
+          onValueChange={(value) => handleSelectChange("Status", value)}
+          value={formData.Status}
+        >
+          <SelectTrigger id="Status">
+            <SelectValue placeholder="Chọn trạng thái" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Draft">Bản nháp</SelectItem>
+            <SelectItem value="Published">Đã xuất bản</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Saving..." : isEditing ? "Update Tour" : "Create Tour"}
+        {isLoading ? "Đang lưu..." : isEditing ? "Cập nhật Tour" : "Tạo Tour"}
       </Button>
     </form>
   );

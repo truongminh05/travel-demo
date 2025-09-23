@@ -48,24 +48,24 @@ export async function POST(request: Request) {
       await writeFile(imagePath, buffer);
       imageUrl = `/uploads/${filename}`;
     }
-
+    const startDate = data.get("StartDate");
+    const endDate = data.get("EndDate");
     // Chuẩn bị dữ liệu
     const insertData = {
       TourSlug: data.get("TourSlug"),
       Title: data.get("Title"),
       Location: data.get("Location"),
       Description: data.get("Description"),
-      CoverImage: imageUrl,
       Price: Number(data.get("Price")),
+      Category: data.get("Category"),
+      StartDate: startDate ? new Date(startDate as string).toISOString() : null,
+      EndDate: endDate ? new Date(endDate as string).toISOString() : null,
       OriginalPrice: data.get("OriginalPrice")
         ? Number(data.get("OriginalPrice"))
         : null,
       Duration: data.get("Duration"),
-      CO2Impact: data.get("CO2Impact"),
-      MaxGuests: data.get("MaxGuests") ? Number(data.get("MaxGuests")) : null,
-      MinAge: data.get("MinAge") ? Number(data.get("MinAge")) : null,
-      Difficulty: data.get("Difficulty"),
       Status: data.get("Status"),
+      Image: imageUrl,
     };
 
     // Thực hiện insert

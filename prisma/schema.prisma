@@ -106,13 +106,20 @@ model Tours {
   TourSlug       String           @unique
   Title          String
   Description    String?
-  Destination    String?
-  DurationDays   Int?
+  Location       String?
+  StartDate      DateTime? @db.Timestamp(6)
+  EndDate        DateTime? @db.Timestamp(6)
   Price          Decimal?         @db.Decimal(10, 2)
+  OriginalPrice  Decimal?         @db.Decimal(10, 2)
   MaxGuests      Int?
   Included       String?
   NotIncluded    String?
+  Duration       String?
+  ReviewCount    String?
   DepartureInfo  String?
+  Category       String?
+  CancellationPolicy    String?
+  Image          String?
   CoverImage     String?
   AverageRating  Decimal?         @default(0.00) @db.Decimal(3, 2)
   Status         String?
@@ -124,7 +131,10 @@ model Tours {
   TourItinerary  TourItinerary[]
   Wishlists      Wishlists[]
 
-  @@index([Destination])
+  @@index([Location])
+  @@index([Category])
+  @@index([StartDate]) // Thêm index để lọc nhanh hơn
+  @@index([EndDate])
 }
 
 model Users {
