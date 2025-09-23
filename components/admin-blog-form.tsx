@@ -1,7 +1,7 @@
 // File: components/admin-blog-form.tsx
 
 "use client";
-
+import { BLOG_CATEGORIES } from "@/lib/blog-categories";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ interface PostData {
   Category: string;
   Status: string;
   Image: string;
+  AuthorName: string; // NEW
+  PublishedDate: string;
 }
 
 export function AdminBlogForm({
@@ -46,6 +48,8 @@ export function AdminBlogForm({
     Category: "Travel Guides",
     Status: "Draft",
     Image: "",
+    AuthorName: "", // NEW
+    PublishedDate: new Date().toISOString().slice(0, 10),
     ...postData,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(
@@ -183,15 +187,47 @@ export function AdminBlogForm({
           </div>
         )}
       </div>
+      <div className="space-y-2">
+        <Label htmlFor="AuthorName">Tên tác giả</Label>
+        <Input
+          id="AuthorName"
+          name="AuthorName"
+          value={formData.AuthorName}
+          onChange={handleTextChange}
+          required
+        />
+      </div>
+
+      {/* Ngày xuất bản */}
+      <div className="space-y-2">
+        <Label htmlFor="PublishedDate">Ngày xuất bản</Label>
+        <Input
+          id="PublishedDate"
+          name="PublishedDate"
+          type="date"
+          value={formData.PublishedDate}
+          onChange={handleTextChange}
+          required
+        />
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="Category">Danh mục</Label>
-          <Input
-            id="Category"
-            name="Category"
-            value={formData.Category || ""}
-            onChange={handleTextChange}
-          />
+          <Select
+            value={formData.Category}
+            onValueChange={(v) => setFormData((p) => ({ ...p, Category: v }))}
+          >
+            <SelectTrigger id="Category">
+              <SelectValue placeholder="Chọn danh mục" />
+            </SelectTrigger>
+            <SelectContent>
+              {BLOG_CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="Status">Trạng thái</Label>

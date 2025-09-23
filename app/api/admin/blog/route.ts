@@ -33,37 +33,47 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Không được phép" }, { status: 403 });
     }
 
-    const data = await request.formData();
-    const imageFile: File | null = data.get("imageFile") as unknown as File;
+    const form = await request.formData();
+    const file = form.get("imageFile") as File | null;
     let imageUrl = "";
 
-    if (imageFile && imageFile.size > 0) {
-      const bytes = await imageFile.arrayBuffer();
+    if (file && file.size > 0) {
+      const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const filename = `${Date.now()}-${imageFile.name.replace(/\s/g, "_")}`;
+      const filename = `${Date.now()}-${file.name.replace(/\s/g, "_")}`;
       const uploadsDir = path.join(process.cwd(), "public/uploads");
       const imagePath = path.join(uploadsDir, filename);
       await writeFile(imagePath, buffer);
       imageUrl = `/uploads/${filename}`;
     }
 
-    const postData = {
-      Title: data.get("Title"),
-      PostSlug: data.get("PostSlug"),
-      Excerpt: data.get("Excerpt"),
-      Content: data.get("Content"),
-      Category: data.get("Category"),
-      Status: data.get("Status"),
-      Image: imageUrl,
-      AuthorID: (session.user as any)?.id,
-    };
+    const publishedDateStr = (form.get("PublishedDate") as string) || "";
+    // chuẩn hóa về ISO (00:00:00 theo UTC)
+    const publishedDate = publishedDateStr
+      ? new Date(`${publishedDateStr}T00:00:00Z`).toISOString()
+      : new Date().toISOString();
 
-    const { error } = await supabase.from("BlogPosts").insert([postData]);
+    const { error } = await supabase.from("BlogPosts").insert([
+      {
+        Title: form.get("Title"),
+        PostSlug: form.get("PostSlug"),
+        Excerpt: form.get("Excerpt"),
+        Content: form.get("Content"),
+        Image: imageUrl,
+        AuthorName: form.get("AuthorName"),
+        Category: form.get("Category"),
+        Status: form.get("Status"),
+        PublishedDate: publishedDate, // NEW
+        AuthorID: (session.user as any)?.id, // nếu bạn cần
+        CreatedAt: new Date().toISOString(), // tuỳ schema của bạn
+      },
+    ]);
 
     if (error) {
-      if (error.code === "23505") {
+      // xử lý duplicate slug (nếu bạn có unique index)
+      if ((error as any).code === "23505") {
         return NextResponse.json(
-          { message: "Slug của bài viết này đã tồn tại." },
+          { message: "Slug đã tồn tại" },
           { status: 409 }
         );
       }
@@ -74,7 +84,7 @@ export async function POST(request: Request) {
       { message: "Bài viết đã được tạo thành công!" },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (e) {
     return NextResponse.json(
       { message: "Lỗi Server khi tạo bài viết" },
       { status: 500 }

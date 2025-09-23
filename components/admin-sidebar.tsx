@@ -8,6 +8,7 @@ import {
   UsersIcon,
   SettingsIcon,
   LogOutIcon,
+  FileTextIcon,
 } from "lucide-react";
 import {
   Tooltip,
@@ -24,6 +25,7 @@ export function AdminSidebar() {
     { href: "/admin/dashboard", icon: HomeIcon, label: "Dashboard" },
     { href: "/admin/tours", icon: PackageIcon, label: "Tours" },
     { href: "/admin/users", icon: UsersIcon, label: "Users" },
+    { href: "/admin/blog", icon: FileTextIcon, label: "Blog" },
     { href: "/admin/settings", icon: SettingsIcon, label: "Settings" },
   ];
 
