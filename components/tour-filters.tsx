@@ -3,9 +3,6 @@
 "use client";
 
 import { useState } from "react";
-// === THAY ĐỔI CÁCH IMPORT TẠI ĐÂY ===
-import format from "date-fns/format";
-import vi from "date-fns/locale/vi";
 import type { DateRange } from "react-day-picker";
 import {
   FilterIcon,
@@ -191,7 +188,7 @@ export function TourFilters({
             </CollapsibleContent>
           </Collapsible>
 
-          <Collapsible
+          {/* <Collapsible
             open={openSections.date}
             onOpenChange={() => toggleSection("date")}
           >
@@ -202,8 +199,8 @@ export function TourFilters({
                   openSections.date ? "rotate-180" : ""
                 }`}
               />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-3 pt-3">
+            </CollapsibleTrigger> */}
+          {/* <CollapsibleContent className="space-y-3 pt-3">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -245,9 +242,9 @@ export function TourFilters({
                 </PopoverContent>
               </Popover>
             </CollapsibleContent>
-          </Collapsible>
+          </Collapsible> */}
 
-          {/* <Collapsible
+          <Collapsible
             open={openSections.duration}
             onOpenChange={() => toggleSection("duration")}
           >
@@ -277,7 +274,7 @@ export function TourFilters({
                 )
               )}
             </CollapsibleContent>
-          </Collapsible> */}
+          </Collapsible>
 
           <Collapsible
             open={openSections.location}

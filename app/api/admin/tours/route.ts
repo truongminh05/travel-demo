@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from("Tours")
-      .select("TourID, Title, Status, Price, Image")
+      .select("TourID, Title, Status, Price, Image,Description")
       .order("CreatedAt", { ascending: false });
 
     if (error) {
@@ -21,6 +21,7 @@ export async function GET() {
       Status: tour.Status,
       Price: tour.Price,
       Image: tour.Image,
+      Description: tour.Description,
     }));
 
     return NextResponse.json(tours);

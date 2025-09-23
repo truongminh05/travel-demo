@@ -11,9 +11,10 @@ export default function NewTourPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add New Tour</CardTitle>
+        <CardTitle>Thêm tour mới</CardTitle>
         <CardDescription>
-          Fill out the form below to add a new tour package to your website.
+          Vui lòng điền vào biểu mẫu bên dưới để thêm một gói tour mới vào trang
+          web của bạn.
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -28,7 +28,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import{ useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 
 // Sample tour data - in a real app, this would come from a database or API
@@ -48,7 +47,17 @@ const tours = {
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+
+  // Replace this with your actual authentication logic or hook
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Example: Check authentication from localStorage or API
+    // Replace with your real authentication check
+    const auth = localStorage.getItem("isAuthenticated") === "true";
+    setIsAuthenticated(auth);
+  }, []);
+
   useEffect(() => {
     // Nếu người dùng chưa đăng nhập, chuyển hướng đến trang login
     // và lưu lại URL hiện tại để quay lại sau khi đăng nhập thành công.

@@ -27,6 +27,11 @@ const categories = [
   { id: "adventure-tours", name: "Tour mạo hiểm" },
   { id: "family-trips", name: "Chuyến đi gia đình" },
 ];
+// Thêm hàm tiện ích để lấy số ngày từ chuỗi thời lượng, ví dụ "3 ngày 2 đêm" -> 3
+const parseDurationDays = (durationStr: string): number => {
+  const match = durationStr.match(/\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+};
 
 export default function ToursPage() {
   const [allTours, setAllTours] = useState<any[]>([]); // State để giữ tất cả tour
@@ -91,9 +96,16 @@ export default function ToursPage() {
     }
 
     if (filters.duration.length > 0) {
-      toursToFilter = toursToFilter.filter((tour) =>
-        filters.duration.includes(tour.duration)
-      );
+      toursToFilter = toursToFilter.filter((tour) => {
+        const days = parseDurationDays(tour.duration); // số ngày của tour hiện tại
+        return filters.duration.some((range) => {
+          if (range === "1-2 ngày") return days >= 1 && days <= 2;
+          if (range === "3-4 ngày") return days >= 3 && days <= 4;
+          if (range === "5-6 ngày") return days >= 5 && days <= 6;
+          if (range === "7+ ngày") return days >= 7;
+          return false;
+        });
+      });
     }
 
     if (filters.rating > 0) {

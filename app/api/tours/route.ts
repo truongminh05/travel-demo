@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from("Tours")
       .select(
-        "TourID, TourSlug, Title, Location, Image, Price, OriginalPrice, AverageRating, ReviewCount, Duration, CancellationPolicy, Category" // << Thêm "Category" vào đây
+        "TourID, TourSlug, Title, Location, Image, Price, OriginalPrice, AverageRating, ReviewCount, Duration, CancellationPolicy, Category, Description" // << Thêm "Category" vào đây
       )
       .eq("Status", "Published");
 
@@ -84,6 +84,7 @@ export async function GET(req: NextRequest) {
       duration: tour.Duration,
       cancellation: tour.CancellationPolicy,
       category: tour.Category,
+      description: tour.Description,
       highlights: [],
     }));
 
