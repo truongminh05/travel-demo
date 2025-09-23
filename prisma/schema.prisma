@@ -23,6 +23,10 @@ model BlogPosts {
   Status          String?
   CreatedAt       DateTime? @default(now()) @db.Timestamp(6)
   UpdatedAt       DateTime? @db.Timestamp(6)
+  Tags            String[]
+  AuthorName      String?
+  AuthorImage     String?
+  AuthorBio       String?
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -102,38 +106,39 @@ model TourItinerary {
 }
 
 model Tours {
-  TourID         Int              @id @default(autoincrement())
-  TourSlug       String           @unique
-  Title          String
-  Description    String?
-  Location       String?
-  StartDate      DateTime? @db.Timestamp(6)
-  EndDate        DateTime? @db.Timestamp(6)
-  Price          Decimal?         @db.Decimal(10, 2)
-  OriginalPrice  Decimal?         @db.Decimal(10, 2)
-  MaxGuests      Int?
-  Included       String?
-  NotIncluded    String?
-  Duration       String?
-  ReviewCount    String?
-  DepartureInfo  String?
-  Category       String?
-  CancellationPolicy    String?
-  Image          String?
-  CoverImage     String?
-  AverageRating  Decimal?         @default(0.00) @db.Decimal(3, 2)
-  Status         String?
-  CreatedAt      DateTime?        @default(now()) @db.Timestamp(6)
-  Bookings       Bookings[]
-  Reviews        Reviews[]
-  TourGallery    TourGallery[]
-  TourHighlights TourHighlights[]
-  TourItinerary  TourItinerary[]
-  Wishlists      Wishlists[]
+  TourID             Int              @id @default(autoincrement())
+  TourSlug           String           @unique
+  Title              String
+  Description        String?
+  Price              Decimal?         @db.Decimal(10, 2)
+  MaxGuests          Int?
+  Included           String?
+  NotIncluded        String?
+  DepartureInfo      String?
+  CoverImage         String?
+  AverageRating      Decimal?         @default(0.00) @db.Decimal(3, 2)
+  Status             String?
+  CreatedAt          DateTime?        @default(now()) @db.Timestamp(6)
+  Image              String?
+  Location           String?
+  OriginalPrice      Decimal?         @db.Decimal(10, 2)
+  ReviewCount        String?
+  Duration           String?
+  CancellationPolicy String?
+  Category           String?
+  EndDate            DateTime?        @db.Timestamp(6)
+  StartDate          DateTime?        @db.Timestamp(6)
+  UpdatedAt          DateTime?        @db.Timestamptz(6)
+  Bookings           Bookings[]
+  Reviews            Reviews[]
+  TourGallery        TourGallery[]
+  TourHighlights     TourHighlights[]
+  TourItinerary      TourItinerary[]
+  Wishlists          Wishlists[]
 
   @@index([Location])
   @@index([Category])
-  @@index([StartDate]) // Thêm index để lọc nhanh hơn
+  @@index([StartDate])
   @@index([EndDate])
 }
 

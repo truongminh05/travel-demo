@@ -118,14 +118,25 @@ export default function AdminToursPage() {
               </SelectContent>
             </Select>
 
-            <Button size="sm" className="gap-1" asChild>
-              <Link href="/admin/tours/new">
-                <PlusCircleIcon className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Thêm Tour
-                </span>
-              </Link>
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" className="gap-1" asChild>
+                <Link href="/admin/tours/new">
+                  <PlusCircleIcon className="h-3.5 w-3.5" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Thêm Tour
+                  </span>
+                </Link>
+              </Button>
+
+              <Button size="sm" className="gap-2" asChild>
+                <Link href="/admin/tours/details/new">
+                  <PlusCircleIcon className="h-3.5 w-3.5" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Thêm chi tiết tour
+                  </span>
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>

@@ -8,6 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  // (tuỳ thích) DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -40,7 +41,6 @@ export function AdminTourActions({ tourId }: AdminTourActionsProps) {
       if (!response.ok) throw new Error("Failed to delete tour");
 
       toast({ title: "Success", description: "Tour deleted successfully." });
-      // Reload the page to see changes. A more advanced solution would update the state.
       router.refresh();
     } catch (error) {
       toast({
@@ -62,17 +62,37 @@ export function AdminTourActions({ tourId }: AdminTourActionsProps) {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </DropdownMenuTrigger>
+
         <DropdownMenuContent align="end">
+          {/* 1 item = 1 Link (asChild) */}
           <DropdownMenuItem asChild>
-            <Link href={`/admin/tours/edit/${tourId}`}>
-              <EditIcon className="mr-2 h-4 w-4" /> Sửa
+            <Link
+              href={`/admin/tours/edit/${tourId}`}
+              className="flex items-center"
+            >
+              <EditIcon className="mr-2 h-4 w-4" />
+              Sửa
             </Link>
           </DropdownMenuItem>
+
+          <DropdownMenuItem asChild>
+            <Link
+              href={`/admin/tours/details/edit/${tourId}`}
+              className="flex items-center"
+            >
+              {/* Có thể thêm icon khác nếu muốn */}
+              Chi tiết tour
+            </Link>
+          </DropdownMenuItem>
+
+          {/* <DropdownMenuSeparator /> */}
+
           <DropdownMenuItem
             onSelect={() => setIsDeleteDialogOpen(true)}
             className="text-destructive focus:text-destructive focus:bg-destructive/10"
           >
-            <TrashIcon className="mr-2 h-4 w-4" /> Xóa
+            <TrashIcon className="mr-2 h-4 w-4" />
+            Xóa
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -83,10 +103,10 @@ export function AdminTourActions({ tourId }: AdminTourActionsProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Bạn chắc chắn?</AlertDialogTitle>
             <AlertDialogDescription>
-              Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn
-              tour khỏi cơ sở dữ liệu.
+              Không thể hoàn tác. Thao tác này sẽ xóa vĩnh viễn tour khỏi cơ sở
+              dữ liệu.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
