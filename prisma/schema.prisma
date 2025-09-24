@@ -86,6 +86,10 @@ model TourGallery {
   TourID   Int?
   ImageURL String?
   Caption  String?
+  Content  String?
+  Category String?
+  ScheduleDay Int?
+  ServiceKey String?
   Tours    Tours?  @relation(fields: [TourID], references: [TourID], onDelete: Cascade, onUpdate: NoAction)
 }
 
@@ -166,3 +170,6 @@ model Wishlists {
 
   @@index([UserID])
 }
+
+
+
