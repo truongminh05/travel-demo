@@ -1,149 +1,181 @@
-import { MapPinIcon } from "lucide-react";
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { MapPinIcon, CalendarIcon, StarIcon, ExternalLinkIcon } from "lucide-react";
+
+type MapTour = {
+  id: string;
+  title: string;
+  location: string;
+  slug?: string | null;
+  image?: string | null;
+  price?: number | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  duration?: string | null;
+};
 
 interface TourMapProps {
-  tours: Array<{
-    id: string;
-    title: string;
-    location: string;
-    price: number;
-    rating: number;
-    co2Impact: "low" | "medium" | "high";
-  }>;
+  tours: MapTour[];
 }
 
+const formatCurrency = (value?: number | null) => {
+  if (value == null) return "Giá đang cập nhật";
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
 export function TourMap({ tours }: TourMapProps) {
-  // Mock coordinates for demonstration
-  const tourLocations = [
-    {
-      id: "1",
-      name: "Aspen, Colorado",
-      x: 25,
-      y: 40,
-      tours: tours.filter((t) => t.location.includes("Colorado")),
-    },
-    {
-      id: "2",
-      name: "Myrtle Beach, SC",
-      x: 75,
-      y: 65,
-      tours: tours.filter((t) => t.location.includes("South Carolina")),
-    },
-    {
-      id: "3",
-      name: "Sedona, Arizona",
-      x: 20,
-      y: 60,
-      tours: tours.filter((t) => t.location.includes("Arizona")),
-    },
-    {
-      id: "4",
-      name: "Charleston, SC",
-      x: 78,
-      y: 68,
-      tours: tours.filter((t) => t.location.includes("Charleston")),
-    },
-    {
-      id: "5",
-      name: "Napa Valley, CA",
-      x: 8,
-      y: 45,
-      tours: tours.filter((t) => t.location.includes("California")),
-    },
-    {
-      id: "6",
-      name: "Yellowstone, WY",
-      x: 30,
-      y: 25,
-      tours: tours.filter((t) => t.location.includes("Wyoming")),
-    },
-  ];
+  const validTours = useMemo(
+    () => tours.filter((tour) => tour.location && tour.location.trim().length > 0),
+    [tours]
+  );
+
+  const [selectedId, setSelectedId] = useState(
+    validTours.length ? validTours[0].id : null
+  );
+
+  const selectedTour = useMemo(() => {
+    if (!validTours.length) return null;
+    if (!selectedId) return validTours[0];
+    return validTours.find((tour) => tour.id === selectedId) ?? validTours[0];
+  }, [selectedId, validTours]);
+
+  if (!validTours.length || !selectedTour) {
+    return (
+      <Card className="overflow-hidden">
+        <CardContent className="p-10 text-center text-muted-foreground">
+          Không tìm thấy địa điểm hợp lệ để hiển thị bản đồ.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(
+    selectedTour.location
+  )}&output=embed`;
+  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    selectedTour.location
+  )}`;
 
   return (
-    <Card className="h-[600px] overflow-hidden">
-      <CardContent className="p-0 h-full relative">
-        {/* Map Background */}
-        <div className="w-full h-full bg-gradient-to-br from-blue-50 to-green-50 relative overflow-hidden">
-          {/* Simplified US Map Outline */}
-          <svg
-            viewBox="0 0 100 60"
-            className="absolute inset-0 w-full h-full opacity-20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="0.5"
-          >
-            {/* Simplified US outline */}
-            <path
-              d="M10 45 L15 40 L20 35 L25 30 L35 25 L45 20 L55 18 L65 20 L75 25 L85 30 L90 35 L88 45 L85 50 L80 55 L70 58 L60 57 L50 55 L40 52 L30 50 L20 48 L10 45 Z"
-              fill="currentColor"
-              className="text-muted/10"
+    <Card className="overflow-hidden">
+      <CardContent className="p-0 flex flex-col lg:flex-row">
+        <aside className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r bg-muted/30">
+          <div className="p-4 flex items-center gap-2 border-b bg-background">
+            <MapPinIcon className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">Chọn địa điểm</span>
+          </div>
+          <ul className="max-h-[420px] overflow-y-auto divide-y">
+            {validTours.map((tour) => {
+              const isActive = tour.id === selectedTour.id;
+              return (
+                <li key={tour.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(tour.id)}
+                    className={`w-full text-left px-4 py-3 transition-colors ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted">
+                        {tour.image ? (
+                          <Image
+                            src={tour.image}
+                            alt={tour.title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+                            Không có ảnh
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium leading-tight line-clamp-2">
+                          {tour.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <MapPinIcon className="w-3 h-3" /> {tour.location}
+                        </p>
+                        <p className="text-xs text-primary font-medium">
+                          {formatCurrency(tour.price ?? undefined)}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </aside>
+
+        <div className="flex-1 min-h-[440px] relative">
+          <div className="absolute inset-0">
+            <iframe
+              key={selectedTour.id + selectedTour.location}
+              src={mapSrc}
+              className="w-full h-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+              title={`Bản đồ ${selectedTour.location}`}
             />
-          </svg>
-
-          {/* Tour Location Pins */}
-          {tourLocations.map((location) => (
-            <div
-              key={location.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-              style={{ left: `${location.x}%`, top: `${location.y}%` }}
-            >
-              {/* Pin */}
-              <div className="relative">
-                <div className="w-6 h-6 bg-primary rounded-full border-2 border-white shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <MapPinIcon className="w-3 h-3 text-white" />
-                </div>
-
-                {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  <div className="bg-background border rounded-lg shadow-lg p-3 min-w-48">
-                    <div className="text-sm font-medium text-foreground mb-1">
-                      {location.name}
-                    </div>
-                    <div className="space-y-1">
-                      {location.tours.slice(0, 2).map((tour) => (
-                        <div
-                          key={tour.id}
-                          className="text-xs text-muted-foreground flex justify-between"
-                        >
-                          <span className="truncate mr-2">
-                            {tour.title.slice(0, 25)}...
-                          </span>
-                          <span className="font-medium text-primary">
-                            ${tour.price}
-                          </span>
-                        </div>
-                      ))}
-                      {location.tours.length > 2 && (
-                        <div className="text-xs text-muted-foreground">
-                          +{location.tours.length - 2} Nhiều chuyến tham quan
-                          hơn
-                        </div>
-                      )}
-                    </div>
-                  </div>
+          </div>
+          <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-sm border rounded-lg shadow-lg p-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">
+                  {selectedTour.title}
+                </p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <MapPinIcon className="w-3 h-3" /> {selectedTour.location}
+                </p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  {selectedTour.duration && (
+                    <span className="flex items-center gap-1">
+                      <CalendarIcon className="w-3 h-3" />
+                      {selectedTour.duration}
+                    </span>
+                  )}
+                  {selectedTour.rating != null && (
+                    <span className="flex items-center gap-1">
+                      <StarIcon className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      {selectedTour.rating.toFixed(1)}
+                      {selectedTour.reviewCount ? ` (${selectedTour.reviewCount})` : ''}
+                    </span>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
-
-          {/* Map Legend */}
-          <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-            <div className="text-sm font-medium text-foreground mb-2">
-              Legend
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-3 h-3 bg-primary rounded-full"></div>
-              <span>Tour Locations</span>
-            </div>
-          </div>
-
-          {/* Tour Count */}
-          <div className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-            <div className="text-sm font-medium text-foreground">
-              {tours.length} Tours Available
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Across {tourLocations.length} locations
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-primary text-sm font-medium">
+                  {formatCurrency(selectedTour.price ?? undefined)}
+                </Badge>
+                <Button asChild size="sm" variant="outline">
+                  <Link href={mapLink} target="_blank" rel="noopener noreferrer">
+                    Mở Google Maps <ExternalLinkIcon className="w-3 h-3 ml-1" />
+                  </Link>
+                </Button>
+                {selectedTour.slug && (
+                  <Button asChild size="sm">
+                    <Link href={`/tours/${encodeURIComponent(selectedTour.slug)}`}>
+                      Xem tour
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

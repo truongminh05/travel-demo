@@ -1,30 +1,52 @@
-import {
-  StarIcon,
-  MapPinIcon,
-  CalendarIcon,
-  LeafIcon,
-  XIcon,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { MapPinIcon, CalendarIcon, StarIcon } from "lucide-react";
 
-interface TourListItemProps {
+type TourListItemProps = {
   id: string;
+  slug?: string | null;
   title: string;
   location: string;
-  image: string;
-  price: number;
-  originalPrice?: number;
-  rating: number;
-  reviewCount: number;
-  duration: string;
-  cancellation: "free" | "partial" | "none";
-  highlights: string[];
-}
+  image?: string | null;
+  price?: number | null;
+  originalPrice?: number | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  duration?: string | null;
+  cancellation?: string | null;
+  description?: string | null;
+};
+
+const formatCurrency = (value?: number | null) => {
+  if (value == null) return "Giá đang cập nhật";
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+const formatCancellation = (value?: string | null) => {
+  if (!value) return "Chính sách hủy đang cập nhật";
+  const normalized = value.trim().toLowerCase();
+  if (normalized.includes("free") || normalized.includes("miễn")) {
+    return "Hủy miễn phí";
+  }
+  if (normalized.includes("partial") || normalized.includes("50")) {
+    return "Hỗ trợ hoàn một phần";
+  }
+  if (normalized.includes("none") || normalized.includes("không")) {
+    return "Không hoàn hủy";
+  }
+  return value;
+};
 
 export function TourListItem({
+  id,
+  slug,
   title,
   location,
   image,
@@ -34,134 +56,98 @@ export function TourListItem({
   reviewCount,
   duration,
   cancellation,
-  highlights = [], // Added default empty array to prevent undefined error
+  description,
 }: TourListItemProps) {
-  const getCancellationText = (type: string) => {
-    switch (type) {
-      case "free":
-        return "Free cancellation";
-      case "partial":
-        return "Partial refund";
-      case "none":
-        return "Non-refundable";
-      default:
-        return "";
-    }
-  };
-
-  const getCO2Badge = (impact: string) => {
-    switch (impact) {
-      case "low":
-        return { text: "Low CO2e", variant: "default" as const };
-      case "medium":
-        return { text: "Medium CO2e", variant: "secondary" as const };
-      case "high":
-        return { text: "High CO2e", variant: "destructive" as const };
-      default:
-        return { text: "Low CO2e", variant: "default" as const };
-    }
-  };
+  const detailHref = slug ? `/tours/${encodeURIComponent(slug)}` : "#";
+  const hasDiscount =
+    price != null && originalPrice != null && originalPrice > price;
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
+    <Card className="overflow-hidden transition-shadow duration-200 hover:shadow-lg">
       <CardContent className="p-0">
-        <div className="flex flex-col sm:flex-row">
-          {/* Image */}
-          <div className="relative w-full sm:w-64 h-48 sm:h-40 flex-shrink-0">
+        <div className="flex flex-col md:flex-row">
+          <div className="relative w-full md:w-64 h-48 md:h-48 flex-shrink-0">
             <Image
               src={image || "/placeholder.svg"}
               alt={title}
               fill
               className="object-cover"
             />
-            {originalPrice && (
-              <div className="absolute top-2 right-2">
-                <Badge
-                  variant="destructive"
-                  className="bg-red-500 text-white text-xs"
-                >
-                  Save ${originalPrice - price}
-                </Badge>
-              </div>
+            {hasDiscount && price != null && originalPrice != null && (
+              <Badge
+                variant="destructive"
+                className="absolute top-3 right-3 bg-red-500 text-white text-xs"
+              >
+                Tiết kiệm {formatCurrency(originalPrice - price)}
+              </Badge>
             )}
           </div>
 
-          {/* Content */}
-          <div className="flex-1 p-4">
-            <div className="flex flex-col sm:flex-row sm:justify-between h-full">
-              <div className="flex-1 mb-4 sm:mb-0">
-                <h3 className="font-semibold text-lg text-foreground mb-2 line-clamp-2">
-                  {title}
-                </h3>
-                <div className="flex items-center text-muted-foreground text-sm mb-2">
-                  <MapPinIcon className="w-4 h-4 mr-1" />
-                  {location}
+          <div className="flex-1 p-5 flex flex-col gap-4">
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold text-foreground line-clamp-2">{title}</h3>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <MapPinIcon className="w-4 h-4" /> {location}
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="flex items-center">
-                    <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium ml-1">{rating}</span>
-                    <span className="text-sm text-muted-foreground ml-1">
-                      ({reviewCount})
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <CalendarIcon className="w-4 h-4 mr-1" />
-                    {duration}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {highlights &&
-                    highlights.length > 0 &&
-                    highlights.slice(0, 3).map((highlight, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {highlight}
-                      </Badge>
-                    ))}
-                </div>
-
-                <div className="text-xs text-muted-foreground">
-                  {cancellation === "free" ? (
-                    <span className="text-green-600">
-                      ✓ {getCancellationText(cancellation)}
-                    </span>
-                  ) : cancellation === "partial" ? (
-                    <span className="text-yellow-600">
-                      ⚠ {getCancellationText(cancellation)}
-                    </span>
-                  ) : (
-                    <span className="text-red-600">
-                      <XIcon className="w-3 h-3 inline mr-1" />
-                      {getCancellationText(cancellation)}
-                    </span>
+                <div className="text-right">
+                  {hasDiscount && originalPrice != null && (
+                    <p className="text-sm text-muted-foreground line-through">
+                      {formatCurrency(originalPrice)}
+                    </p>
                   )}
+                  <p className="text-xl font-bold text-primary">
+                    {formatCurrency(price ?? null)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">/ người</p>
                 </div>
               </div>
 
-              {/* Price and Book Button */}
-              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 sm:gap-2 sm:w-32">
-                <div className="text-right">
-                  <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-0">
-                    {originalPrice && (
-                      <span className="text-sm text-muted-foreground line-through">
-                        ${originalPrice}
-                      </span>
+              {description && (
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {description}
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                {rating != null && (
+                  <span className="flex items-center gap-1">
+                    <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    {rating.toFixed(1)}
+                    {typeof reviewCount === 'number' && (
+                      <span className="text-xs text-muted-foreground">({reviewCount})</span>
                     )}
-                    <span className="text-xl font-bold text-primary">
-                      ${price}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    per person
                   </span>
-                </div>
-                <Button
-                  size="sm"
-                  className="bg-primary hover:bg-primary/90 whitespace-nowrap"
-                >
-                  Book Now
+                )}
+                {duration && (
+                  <span className="flex items-center gap-1">
+                    <CalendarIcon className="w-4 h-4" /> {duration}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  {formatCancellation(cancellation)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-auto">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>ID tour: {id}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button asChild variant="outline" size="sm" className="whitespace-nowrap">
+                  <Link
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Xem bản đồ
+                  </Link>
+                </Button>
+                <Button asChild size="sm" disabled={!slug} className="whitespace-nowrap">
+                  <Link href={detailHref}>Xem chi tiết</Link>
                 </Button>
               </div>
             </div>
