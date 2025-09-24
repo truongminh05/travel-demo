@@ -1,7 +1,14 @@
-// lib/supabaseClient.ts
-import { createClient } from "@supabase/supabase-js";
+import { PrismaClient } from "@prisma/client";
 
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined;
+}
+
+export const prisma = globalThis.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  globalThis.prisma = prisma;
+}
+
+export default prisma;
