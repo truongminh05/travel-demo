@@ -43,11 +43,20 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }: { token: JWT; user?: User | any }) {
-      if (user) (token as any).role = user.role;
+      if (user) {
+        (token as any).role = user.role;
+        (token as any).userId = user.id ?? (user as any)?.UserID ?? null;
+      }
+      if (!(token as any).userId && token.sub) {
+        (token as any).userId = token.sub;
+      }
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
-      if (session?.user) (session.user as any).role = (token as any).role;
+      if (session?.user) {
+        (session.user as any).role = (token as any).role;
+        (session.user as any).id = (token as any).userId ?? token.sub ?? null;
+      }
       return session;
     },
   },
@@ -55,3 +64,4 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
 };
+

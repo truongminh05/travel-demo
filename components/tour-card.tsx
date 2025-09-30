@@ -2,8 +2,9 @@
 
 "use client";
 
-import { StarIcon, MapPinIcon, CalendarIcon } from "lucide-react";
+import { MapPinIcon, CalendarIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { StarRating } from "@/components/star-rating";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -84,7 +85,7 @@ export function TourCard({
   cancellation,
   boldKeywords,
 }: TourCardProps) {
-  const hasDiscount = originalPrice && originalPrice > price;
+  const hasDiscount = !!originalPrice && originalPrice > price;
   const discountPercentage = hasDiscount
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
@@ -158,17 +159,13 @@ export function TourCard({
           )}
 
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div
-              className="flex items-center"
-              aria-label={`Đánh giá: ${rating} trên 5 sao`}
-            >
-              <StarIcon
-                className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1"
-                aria-hidden="true"
-              />
-              <span className="font-medium text-foreground">{rating}</span>
-              <span className="ml-1">({reviewCount || 0})</span>
-            </div>
+            <StarRating
+              value={rating}
+              reviewCount={reviewCount}
+              size="sm"
+              className="gap-1"
+              label={`Đánh giá: ${rating} trên 5 sao`}
+            />
             <div className="flex items-center">
               <CalendarIcon className="w-4 h-4 mr-1.5" aria-hidden="true" />
               <span>{duration}</span>
@@ -204,3 +201,5 @@ export function TourCard({
     </Card>
   );
 }
+
+

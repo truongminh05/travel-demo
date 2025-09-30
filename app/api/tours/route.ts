@@ -3,6 +3,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 
+const toNumber = (value: unknown): number => {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  if (value && typeof value === "object" && "toString" in value) {
+    const parsed = Number((value as { toString(): string }).toString());
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -77,10 +90,10 @@ export async function GET(req: NextRequest) {
       title: tour.Title,
       location: tour.Location,
       image: tour.Image,
-      price: tour.Price,
-      originalPrice: tour.OriginalPrice,
-      rating: tour.AverageRating,
-      reviewCount: tour.ReviewCount,
+      price: toNumber(tour.Price),
+      originalPrice: toNumber(tour.OriginalPrice),
+      rating: toNumber(tour.AverageRating),
+      reviewCount: toNumber(tour.ReviewCount),
       duration: tour.Duration,
       cancellation: tour.CancellationPolicy,
       category: tour.Category,
@@ -97,3 +110,4 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+

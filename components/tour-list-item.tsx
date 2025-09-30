@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPinIcon, CalendarIcon, StarIcon } from "lucide-react";
+import { MapPinIcon, CalendarIcon } from "lucide-react";
+import { StarRating } from "@/components/star-rating";
 
 type TourListItemProps = {
   id: string;
@@ -113,13 +114,12 @@ export function TourListItem({
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 {rating != null && (
-                  <span className="flex items-center gap-1">
-                    <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    {rating.toFixed(1)}
-                    {typeof reviewCount === 'number' && (
-                      <span className="text-xs text-muted-foreground">({reviewCount})</span>
-                    )}
-                  </span>
+                  <StarRating
+                    value={rating}
+                    reviewCount={typeof reviewCount === "number" ? reviewCount : undefined}
+                    size="sm"
+                    className="gap-1"
+                  />
                 )}
                 {duration && (
                   <span className="flex items-center gap-1">
@@ -157,3 +157,4 @@ export function TourListItem({
     </Card>
   );
 }
+

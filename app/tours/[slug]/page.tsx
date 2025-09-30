@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import BackButton from "@/app/blog/[slug]/back-button";
 import TourGalleryTabs from "@/components/tour-gallery-tabs";
+import { TourRatingPanel } from "@/components/tour-rating-panel";
 import type { GalleryCard } from "@/components/tour-gallery-tabs";
 
 
@@ -20,6 +21,8 @@ type ToursRow = {
   Image: string | null;
   CoverImage: string | null;
   Included: string | null;
+  AverageRating: string | number | null;
+  ReviewCount: string | number | null;
 };
 
 type GalleryRow = {
@@ -66,7 +69,7 @@ async function getTourBySlug(slug: string) {
   const { data, error } = await supabase
     .from("Tours")
     .select(
-      "TourID, TourSlug, Title, Description, Location, Duration, Price, OriginalPrice, Image, CoverImage, Included"
+      "TourID, TourSlug, Title, Description, Location, Duration, Price, OriginalPrice, Image, CoverImage, Included, AverageRating, ReviewCount"
     )
     .eq("TourSlug", slug)
     .single();
@@ -85,6 +88,8 @@ async function getTourBySlug(slug: string) {
     image: r.Image ?? null,
     cover: r.CoverImage ?? null,
     includedText: r.Included ?? "",
+    averageRating: Number(r.AverageRating ?? 0),
+    reviewCount: Number(r.ReviewCount ?? 0),
   };
 }
 
@@ -281,6 +286,14 @@ export default async function TourDetailPage({
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="container mx-auto px-4 max-w-4xl py-6 md:py-8">
+        <TourRatingPanel
+          tourId={tour.id}
+          initialAverage={tour.averageRating}
+          initialCount={tour.reviewCount}
+        />
       </section>
 
       {tour.description && (

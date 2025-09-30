@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { StarRating } from "@/components/star-rating";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import Image from "next/image";
@@ -32,6 +33,58 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+
+
+type BookingSummary = {
+  id: number;
+  reference: string | null;
+  bookingDate: string | null;
+  departureDate: string | null;
+  guests: number | null;
+  totalAmount: number | null;
+  status: string | null;
+  tour: {
+    id: number;
+    slug: string | null;
+    title: string | null;
+    location: string | null;
+    image: string | null;
+    duration: string | null;
+    averageRating: number;
+    price: number;
+    originalPrice: number;
+  } | null;
+  rating: number | null;
+};
+
+type SavedTourSummary = {
+  id: number;
+  slug: string | null;
+  title: string;
+  location: string | null;
+  image: string | null;
+  duration: string | null;
+  averageRating: number;
+  reviewCount: number;
+  price: number;
+  originalPrice: number;
+  addedDate: string | null;
+};
+
+type DashboardStats = {
+  totalBookings: number;
+  savedTours: number;
+  averageSavedRating: number;
+};
+
+type AccountOverview = {
+  stats: DashboardStats;
+  bookings: BookingSummary[];
+  upcomingTrips: BookingSummary[];
+  recentSaved: SavedTourSummary[];
+  favoriteTours: SavedTourSummary[];
+  savedTours: SavedTourSummary[];
+};
 
 export default function AccountPage() {
   const { data: session, status } = useSession();
@@ -83,98 +136,91 @@ export default function AccountPage() {
     bookingReminders: true,
   });
 
-  const bookingHistory = [
-    {
-      id: "TRV-2024-001234",
-      tour: "Kỳ nghỉ dưỡng trên núi ở Colorado",
-      location: "Aspen, Colorado",
-      image: "/mountain-retreat-colorado-aspen-snow-peaks.png",
-      date: "15/03/2024",
-      status: "upcoming",
-      guests: 2,
-      total: 1870,
-      bookingDate: "20/01/2024",
-    },
-    {
-      id: "TRV-2023-005678",
-      tour: "Hành trình ven biển Maine",
-      location: "Công viên quốc gia Acadia",
-      image: "/placeholder.svg?height=200&width=300",
-      date: "10/08/2023",
-      status: "completed",
-      guests: 1,
-      total: 1299,
-      bookingDate: "15/06/2023",
-      rating: 5,
-    },
-    {
-      id: "TRV-2023-003456",
-      tour: "Khám phá sa mạc Arizona",
-      location: "Sedona, Arizona",
-      image: "/sedona-arizona-red-rocks-desert-landscape-sunset.png",
-      date: "05/11/2023",
-      status: "completed",
-      guests: 2,
-      total: 2150,
-      bookingDate: "20/09/2023",
-      rating: 4,
-    },
-  ];
+  const [dashboardData, setDashboardData] = useState<AccountOverview | null>(null);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
-  const savedTours = [
-    {
-      id: "beach-resort-myrtle",
-      title: "Khu nghỉ dưỡng biển Myrtle",
-      location: "Myrtle Beach, SC",
-      image: "/beach-resort-myrtle-beach-ocean-waves-palm-trees.png",
-      price: 699,
-      originalPrice: 899,
-      rating: 4.6,
-      duration: "4 ngày",
-      savedDate: "2024-01-15",
-    },
-    {
-      id: "napa-valley-wine",
-      title: "Tour rượu vang Napa Valley",
-      location: "Napa Valley, CA",
-      image: "/napa-valley-vineyard-wine-tasting-rolling-hills-gr.png",
-      price: 1299,
-      rating: 4.9,
-      duration: "3 ngày",
-      savedDate: "2024-01-10",
-    },
-    {
-      id: "yellowstone-adventure",
-      title: "Khám phá Yellowstone",
-      location: "Wyoming",
-      image: "/yellowstone-national-park-geysers-wildlife-camping.png",
-      price: 1599,
-      rating: 4.8,
-      duration: "7 ngày",
-      savedDate: "2024-01-05",
-    },
-  ];
+  useEffect(() => {
+    if (status !== "authenticated") {
+      return;
+    }
+    let active = true;
+    const load = async () => {
+      setIsLoadingDashboard(true);
+      setDashboardError(null);
+      try {
+        const res = await fetch("/api/account/overview", { cache: "no-store", credentials: "include" });
+        if (!res.ok) {
+          const message = await res.text();
+          throw new Error(message || "Failed to load account overview");
+        }
+        const data: AccountOverview = await res.json();
+        if (active) {
+          setDashboardData(data);
+        }
+      } catch (error) {
+        console.error("[account] overview error", error);
+        if (active) {
+          setDashboardError("Không thể tải dữ liệu tài khoản. Vui lòng thử lại sau.");
+        }
+      } finally {
+        if (active) {
+          setIsLoadingDashboard(false);
+        }
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [status]);
+
+  const bookingHistory = dashboardData?.bookings ?? [];
+  const savedTours = dashboardData?.savedTours ?? [];
+  const recentSavedTours = dashboardData?.recentSaved ?? [];
+  const favoriteTours = dashboardData?.favoriteTours ?? [];
+  const upcomingTrips = dashboardData?.upcomingTrips ?? [];
+  const overviewStats = dashboardData?.stats;
+  const formatCount = (value: number | null | undefined) =>
+    new Intl.NumberFormat("vi-VN").format(value ?? 0);
+  const formatCurrency = (value: number | null | undefined) =>
+    value != null
+      ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value)
+      : "—";
+
+  const formatDate = (value: string | null | undefined) => {
+    if (!value) return "Chưa xác định";
+    try {
+      return new Date(value).toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return value;
+    }
+  };
+
 
   const handlePreferenceChange = (field: string, value: boolean) => {
     setPreferences((prev) => ({ ...prev, [field]: value }));
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (status?: string | null) => {
+    const normalized = (status ?? "pending").toLowerCase();
+    switch (normalized) {
       case "upcoming":
         return <Badge className="bg-blue-100 text-blue-800">Sắp tới</Badge>;
       case "completed":
-        return (
-          <Badge className="bg-green-100 text-green-800">Hoàn thành</Badge>
-        );
+        return <Badge className="bg-green-100 text-green-800">Hoàn thành</Badge>;
       case "cancelled":
         return <Badge className="bg-red-100 text-red-800">Đã hủy</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">Đang xử lý</Badge>;
     }
   };
 
-  const removeSavedTour = (tourId: string) => {
+  const removeSavedTour = (tourId: number | string) => {
     console.log("Xóa tour đã lưu:", tourId);
   };
 
@@ -251,6 +297,9 @@ export default function AccountPage() {
             {/* Nội dung các tab */}
             {/* === Tổng quan === */}
             <TabsContent value="overview" className="space-y-8">
+              {dashboardError && (
+                <p className="text-sm text-destructive">{dashboardError}</p>
+              )}
               <div className="grid md:grid-cols-3 gap-6">
                 <Card>
                   <CardContent className="pt-6">
@@ -259,7 +308,7 @@ export default function AccountPage() {
                         <CalendarIcon className="w-6 h-6 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">3</p>
+                        <p className="text-2xl font-bold">{isLoadingDashboard && !dashboardData ? "..." : formatCount(overviewStats?.totalBookings ?? 0)}</p>
                         <p className="text-sm text-muted-foreground">
                           Tổng số đặt chỗ
                         </p>
@@ -276,7 +325,7 @@ export default function AccountPage() {
                       </div>
                       <div>
                         <p className="text-2xl font-bold">
-                          {savedTours.length}
+                          {isLoadingDashboard && !dashboardData ? "..." : formatCount(overviewStats?.savedTours ?? savedTours.length)}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Tour đã lưu
@@ -293,7 +342,7 @@ export default function AccountPage() {
                         <StarIcon className="w-6 h-6 text-purple-600" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">4.7</p>
+                        <p className="text-2xl font-bold">{isLoadingDashboard && !dashboardData ? "..." : (overviewStats ? overviewStats.averageSavedRating.toFixed(1) : "0.0")}</p>
                         <p className="text-sm text-muted-foreground">
                           Điểm đánh giá trung bình
                         </p>
@@ -308,41 +357,61 @@ export default function AccountPage() {
                 <CardHeader>
                   <CardTitle>Hoạt động gần đây</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4 p-4 border rounded-lg">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <CalendarIcon className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium">
-                          Chuyến đi sắp tới đến Colorado
-                        </p>
+                <CardContent>                  <div className="space-y-4">
+                    {isLoadingDashboard && !dashboardData && (
+                      <p className="text-sm text-muted-foreground">Đang tải hoạt động...</p>
+                    )}
+                    {!isLoadingDashboard && dashboardData &&
+                      upcomingTrips.length === 0 &&
+                      recentSavedTours.length === 0 && (
                         <p className="text-sm text-muted-foreground">
-                          Khởi hành ngày 15/03/2024
+                          Chưa có hoạt động gần đây.
                         </p>
+                      )}
+                    {upcomingTrips.map((booking) => (
+                      <div
+                        key={`upcoming-${booking.id}`}
+                        className="flex items-center gap-4 p-4 border rounded-lg"
+                      >
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <CalendarIcon className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">
+                            {booking.tour?.title || "Chuyến đi sắp tới"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Khởi hành {formatDate(booking.departureDate)}
+                          </p>
+                        </div>
+                        {booking.tour?.slug ? (
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/tours/${booking.tour.slug}`}>Xem chi tiết</Link>
+                          </Button>
+                        ) : null}
                       </div>
-                      <Button variant="outline" size="sm">
-                        Xem chi tiết
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center gap-4 p-4 border rounded-lg">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <HeartIcon className="w-5 h-5 text-green-600" />
+                    ))}
+                    {recentSavedTours.map((tour) => (
+                      <div
+                        key={`saved-${tour.id}`}
+                        className="flex items-center gap-4 p-4 border rounded-lg"
+                      >
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <HeartIcon className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Đã lưu {tour.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tour.location || "Tour yêu thích"}
+                          </p>
+                        </div>
+                        {tour.slug ? (
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/tours/${tour.slug}`}>Xem tour</Link>
+                          </Button>
+                        ) : null}
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium">
-                          Đã lưu Khu nghỉ dưỡng biển Myrtle
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Đã thêm vào yêu thích
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Xem tour
-                      </Button>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -350,6 +419,9 @@ export default function AccountPage() {
 
             {/* === Đặt chỗ === */}
             <TabsContent value="bookings" className="space-y-6">
+              {dashboardError && (
+                <p className="text-sm text-destructive">{dashboardError}</p>
+              )}
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold">Đặt chỗ của bạn</h2>
                 <Button asChild>
@@ -358,14 +430,22 @@ export default function AccountPage() {
               </div>
 
               <div className="space-y-6">
+                {isLoadingDashboard && !dashboardData && (
+                  <p className="text-sm text-muted-foreground">Đang tải lịch sử đặt chỗ...</p>
+                )}
+                {!isLoadingDashboard && bookingHistory.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Bạn chưa có đặt chỗ nào.
+                  </p>
+                )}
                 {bookingHistory.map((booking) => (
                   <Card key={booking.id}>
                     <CardContent className="p-6">
                       <div className="grid md:grid-cols-4 gap-6 items-center">
                         <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
                           <Image
-                            src={booking.image || "/placeholder.svg"}
-                            alt={booking.tour}
+                            src={booking.tour?.image || "/placeholder.svg"}
+                            alt={booking.tour?.title || "Tour đã đặt"}
                             fill
                             className="object-cover"
                           />
@@ -374,48 +454,55 @@ export default function AccountPage() {
                         <div className="md:col-span-2">
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="font-semibold text-lg">
-                              {booking.tour}
+                              {booking.tour?.title || "Tour đã đặt"}
                             </h3>
                             {getStatusBadge(booking.status)}
                           </div>
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <MapPinIcon className="w-4 h-4" />
-                              <span>{booking.location}</span>
+                              <span>{booking.tour?.location || "Đang cập nhật"}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <CalendarIcon className="w-4 h-4" />
-                              <span>{booking.date}</span>
+                              <span>{formatDate(booking.departureDate)}</span>
                             </div>
-                            <p>Mã đặt chỗ: {booking.id}</p>
-                            <p>Số khách: {booking.guests}</p>
+                            <p>
+                              Mã đặt chỗ: {booking.reference || `#${booking.id}`}
+                            </p>
+                            <p>Số khách: {booking.guests ?? "—"}</p>
                           </div>
-                          {booking.rating && (
+                          {booking.rating ? (
                             <div className="flex items-center gap-1 mt-2">
                               <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                               <span className="text-sm">
                                 Bạn đã đánh giá {booking.rating}/5
                               </span>
                             </div>
-                          )}
+                          ) : null}
                         </div>
 
                         <div className="text-right">
                           <p className="text-2xl font-bold text-primary">
-                            ${booking.total}
+                            {formatCurrency(booking.totalAmount)}
                           </p>
                           <p className="text-sm text-muted-foreground mb-4">
                             Tổng thanh toán
                           </p>
                           <div className="space-y-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full bg-transparent"
-                            >
-                              <EyeIcon className="w-4 h-4 mr-2" />
-                              Xem chi tiết
-                            </Button>
+                            {booking.tour?.slug ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full bg-transparent"
+                                asChild
+                              >
+                                <Link href={`/tours/${booking.tour.slug}`}>
+                                  <EyeIcon className="w-4 h-4 mr-2" />
+                                  Xem chi tiết tour
+                                </Link>
+                              </Button>
+                            ) : null}
                             {booking.status === "upcoming" && (
                               <Button
                                 variant="outline"
@@ -436,13 +523,45 @@ export default function AccountPage() {
 
             {/* === Yêu thích === */}
             <TabsContent value="wishlist" className="space-y-6">
+              {dashboardError && (
+                <p className="text-sm text-destructive">{dashboardError}</p>
+              )}
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold">Tour yêu thích của bạn</h2>
                 <p className="text-muted-foreground">
-                  {savedTours.length} tour đã lưu
+                  {isLoadingDashboard && !dashboardData ? "..." : formatCount(overviewStats?.savedTours ?? savedTours.length)} tour đã lưu
                 </p>
               </div>
 
+              {isLoadingDashboard && !dashboardData && (
+                <p className="text-sm text-muted-foreground">Đang tải danh sách tour đã lưu...</p>
+              )}
+              {!isLoadingDashboard && savedTours.length === 0 && (
+                <p className="text-sm text-muted-foreground">Bạn chưa lưu tour nào.</p>
+              )}
+              {favoriteTours.length > 0 && (
+                <Card className="bg-muted/40">
+                  <CardHeader className="pb-2">
+                    <CardTitle>Tour được đánh giá cao</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {favoriteTours.map((tour) => (
+                      <div
+                        key={`favorite-${tour.id}`}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <div>
+                          <p className="font-medium">{tour.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {tour.location || "Đang cập nhật"}
+                          </p>
+                        </div>
+                        <StarRating value={tour.averageRating} size="sm" showValue={false} />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {savedTours.map((tour) => (
                   <Card key={tour.id} className="overflow-hidden">
@@ -466,31 +585,36 @@ export default function AccountPage() {
                       <h3 className="font-semibold mb-2">{tour.title}</h3>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
                         <MapPinIcon className="w-4 h-4" />
-                        <span>{tour.location}</span>
+                        <span>{tour.location || "Đang cập nhật"}</span>
                       </div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="flex items-center gap-1">
-                          <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm">{tour.rating}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          • {tour.duration}
-                        </span>
+                      <div className="flex items-center justify-between mb-3">
+                        <StarRating
+                          value={tour.averageRating}
+                          reviewCount={tour.reviewCount}
+                          size="sm"
+                        />
+                        {tour.duration && (
+                          <span className="text-sm text-muted-foreground">
+                            {tour.duration}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          {tour.originalPrice && (
+                          {tour.originalPrice > tour.price && tour.originalPrice ? (
                             <span className="text-sm text-muted-foreground line-through mr-2">
-                              ${tour.originalPrice}
+                              {formatCurrency(tour.originalPrice)}
                             </span>
-                          )}
+                          ) : null}
                           <span className="text-lg font-bold text-primary">
-                            ${tour.price}
+                            {formatCurrency(tour.price)}
                           </span>
                         </div>
-                        <Button size="sm" asChild>
-                          <Link href={`/tours/${tour.id}`}>Xem tour</Link>
-                        </Button>
+                        {tour.slug ? (
+                          <Button size="sm" asChild>
+                            <Link href={`/tours/${tour.slug}`}>Xem tour</Link>
+                          </Button>
+                        ) : null}
                       </div>
                     </CardContent>
                   </Card>
