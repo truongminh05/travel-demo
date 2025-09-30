@@ -27,9 +27,10 @@ async function getPostDetails(id: string) {
 export default async function EditBlogPostPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const postData = await getPostDetails(params.id);
+  const { id } = await params;
+  const postData = await getPostDetails(id);
 
   if (!postData) {
     return <div>Bài viết không tồn tại hoặc có lỗi xảy ra.</div>;
