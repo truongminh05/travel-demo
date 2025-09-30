@@ -31,7 +31,7 @@ async function ensureUploadsDir() {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { tourId: string } }
+  { params }: { params: Promise<{ tourId: string }> }
 ) {
   const session = await getServerSession(authOptions);
   const role = (session?.user as { role?: string } | undefined)?.role;
@@ -39,7 +39,8 @@ export async function POST(
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  const tourId = Number.parseInt(params.tourId, 10);
+  const { tourId: tourIdParam } = await params;
+  const tourId = Number.parseInt(tourIdParam, 10);
   if (!Number.isInteger(tourId) || tourId <= 0) {
     return NextResponse.json(
       { message: "tourId không hợp lệ" },
@@ -144,8 +145,8 @@ export async function POST(
 }
 
 export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ tourId: string; imageId: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<{ tourId: string }> }
 ) {
   const session = await getServerSession(authOptions);
   const role = (session?.user as { role?: string } | undefined)?.role;
@@ -153,7 +154,11 @@ export async function DELETE(
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  const { tourId: tourIdStr, imageId: imageIdStr } = await params;
+  const { tourId: tourIdStr } = await params;
+  const imageIdStr = req.nextUrl.searchParams.get("imageId");
+  if (!imageIdStr) {
+    return NextResponse.json({ message: "Missing imageId" }, { status: 400 });
+  }
   const tourId = Number.parseInt(tourIdStr, 10);
   const imageId = Number.parseInt(imageIdStr, 10);
   if (!Number.isInteger(tourId) || tourId <= 0 || !Number.isInteger(imageId)) {
@@ -175,7 +180,7 @@ export async function DELETE(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ tourId: string; imageId: string }> }
+  { params }: { params: Promise<{ tourId: string }> }
 ) {
   const session = await getServerSession(authOptions);
   const role = (session?.user as { role?: string } | undefined)?.role;
@@ -183,7 +188,11 @@ export async function PATCH(
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  const { tourId: tourIdStr, imageId: imageIdStr } = await params;
+  const { tourId: tourIdStr } = await params;
+  const imageIdStr = req.nextUrl.searchParams.get("imageId");
+  if (!imageIdStr) {
+    return NextResponse.json({ message: "Missing imageId" }, { status: 400 });
+  }
   const tourId = Number.parseInt(tourIdStr, 10);
   const imageId = Number.parseInt(imageIdStr, 10);
   if (!Number.isInteger(tourId) || tourId <= 0 || !Number.isInteger(imageId)) {

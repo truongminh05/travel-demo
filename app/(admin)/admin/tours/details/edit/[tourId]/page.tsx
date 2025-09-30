@@ -71,7 +71,7 @@ async function getIncludedServices(tourId: number): Promise<string[]> {
 export default async function EditTourDetailPage({
   params,
 }: {
-  params: { tourId: string };
+  params: Promise<{ tourId: string }>;
 }) {
   const { tourId } = await params;
   const id = Number(tourId);
@@ -87,7 +87,7 @@ export default async function EditTourDetailPage({
     return (
       <div className="container py-8">
         <h1 className="text-2xl font-bold mb-2">Không tìm thấy tour</h1>
-        <p className="text-muted-foreground">TourID: {params.tourId}</p>
+        <p className="text-muted-foreground">TourID: {tourId}</p>
       </div>
     );
   }
@@ -149,8 +149,3 @@ export default async function EditTourDetailPage({
     </div>
   );
 }
-
-
-
-
-

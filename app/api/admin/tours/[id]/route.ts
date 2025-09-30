@@ -34,10 +34,10 @@ export async function GET(
 // PATCH: cập nhật tour
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params; // Lỗi cú pháp Next.js mới sẽ không còn
+    const { id } = await params;
     const data = await req.formData();
     const imageFile: File | null = data.get("imageFile") as unknown as File;
     let imageUrl = data.get("Image") as string; // Sử dụng Image

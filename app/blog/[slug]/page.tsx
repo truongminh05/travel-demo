@@ -59,7 +59,7 @@ async function getRelated(category: string | null, excludeId: number) {
 export default async function BlogDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params; // <— await params
   const post = await getPost(slug);
@@ -129,3 +129,4 @@ export default async function BlogDetailPage({
     </div>
   );
 }
+

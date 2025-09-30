@@ -10,13 +10,14 @@ import { authOptions } from "@/lib/auth";
 // Lấy chi tiết một bài viết
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { data, error } = await supabase
       .from("BlogPosts")
       .select("*")
-      .eq("PostID", params.id)
+      .eq("PostID", id)
       .single();
     if (error || !data) throw new Error("Không tìm thấy bài viết");
     return NextResponse.json(data);
@@ -31,9 +32,10 @@ export async function GET(
 // Cập nhật một bài viết
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session || (session.user as any)?.role !== "Admin") {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
@@ -92,7 +94,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("BlogPosts")
       .update(payload)
-      .eq("PostID", Number(params.id))
+      .eq("PostID", Number(id))
       .select()
       .single();
 
