@@ -15,7 +15,13 @@ import {
   EyeIcon,
   LanguagesIcon,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +31,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from "@/components/ui/use-toast";
+import { ManagePaymentMethodDialog } from "@/components/manage-payment-method-dialog";
+import {
+  loadPaymentMethods,
+  savePaymentMethods,
+  type PaymentAccounts,
+} from "@/lib/payment-methods";
 import { StarRating } from "@/components/star-rating";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -33,7 +47,6 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-
 
 type BookingSummary = {
   id: number;
@@ -85,6 +98,7 @@ type AccountOverview = {
   favoriteTours: SavedTourSummary[];
   savedTours: SavedTourSummary[];
 };
+type PaymentPreference = "bank" | "momo" | "consultation";
 
 export default function AccountPage() {
   const { data: session, status } = useSession();
@@ -136,9 +150,16 @@ export default function AccountPage() {
     bookingReminders: true,
   });
 
-  const [dashboardData, setDashboardData] = useState<AccountOverview | null>(null);
+  const [dashboardData, setDashboardData] = useState<AccountOverview | null>(
+    null
+  );
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [paymentPreference, setPaymentPreference] =
+    useState<PaymentPreference>("bank");
+  const [paymentAccounts, setPaymentAccounts] = useState<PaymentAccounts>({});
+  const [managePaymentOpen, setManagePaymentOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (status !== "authenticated") {
@@ -149,7 +170,10 @@ export default function AccountPage() {
       setIsLoadingDashboard(true);
       setDashboardError(null);
       try {
-        const res = await fetch("/api/account/overview", { cache: "no-store", credentials: "include" });
+        const res = await fetch("/api/account/overview", {
+          cache: "no-store",
+          credentials: "include",
+        });
         if (!res.ok) {
           const message = await res.text();
           throw new Error(message || "Failed to load account overview");
@@ -161,7 +185,9 @@ export default function AccountPage() {
       } catch (error) {
         console.error("[account] overview error", error);
         if (active) {
-          setDashboardError("Không thể tải dữ liệu tài khoản. Vui lòng thử lại sau.");
+          setDashboardError(
+            "Không thể tải dữ liệu tài khoản. Vui lòng thử lại sau."
+          );
         }
       } finally {
         if (active) {
@@ -185,7 +211,10 @@ export default function AccountPage() {
     new Intl.NumberFormat("vi-VN").format(value ?? 0);
   const formatCurrency = (value: number | null | undefined) =>
     value != null
-      ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value)
+      ? new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(value)
       : "—";
 
   const formatDate = (value: string | null | undefined) => {
@@ -201,6 +230,52 @@ export default function AccountPage() {
     }
   };
 
+  useEffect(() => {
+    let active = true;
+
+    const syncPaymentMethods = async () => {
+      try {
+        const methods = await loadPaymentMethods();
+        if (!active) return;
+        setPaymentAccounts(methods);
+      } catch (error) {
+        console.error("[AccountPage] load payment methods error", error);
+      }
+
+      if (!active) return;
+
+      if (typeof window !== "undefined") {
+        const storedPreference = window.localStorage.getItem("paymentPreference");
+        if (
+          storedPreference === "bank" ||
+          storedPreference === "momo" ||
+          storedPreference === "consultation"
+        ) {
+          setPaymentPreference(storedPreference as PaymentPreference);
+        }
+      }
+    };
+
+    syncPaymentMethods();
+
+    return () => {
+      active = false;
+    };
+  }, [status]);
+
+  const updatePaymentPreference = (value: PaymentPreference) => {
+    setPaymentPreference(value);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("paymentPreference", value);
+    }
+    toast({ title: "Đã cập nhật phương thức thanh toán" });
+  };
+
+  const handleSavePaymentAccounts = (next: PaymentAccounts) => {
+    setPaymentAccounts(next);
+    savePaymentMethods(next);
+    toast({ title: "Đã lưu phương thức thanh toán" });
+  };
 
   const handlePreferenceChange = (field: string, value: boolean) => {
     setPreferences((prev) => ({ ...prev, [field]: value }));
@@ -212,7 +287,9 @@ export default function AccountPage() {
       case "upcoming":
         return <Badge className="bg-blue-100 text-blue-800">Sắp tới</Badge>;
       case "completed":
-        return <Badge className="bg-green-100 text-green-800">Hoàn thành</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800">Hoàn thành</Badge>
+        );
       case "cancelled":
         return <Badge className="bg-red-100 text-red-800">Đã hủy</Badge>;
       default:
@@ -220,8 +297,50 @@ export default function AccountPage() {
     }
   };
 
-  const removeSavedTour = (tourId: number | string) => {
-    console.log("Xóa tour đã lưu:", tourId);
+  const removeSavedTour = async (tourId: number | string) => {
+    const numericId = Number(tourId);
+    if (!Number.isFinite(numericId)) return;
+    try {
+      const response = await fetch(`/api/tours/${numericId}/wishlist`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(
+          payload?.message || "Không thể xóa tour khỏi yêu thích"
+        );
+      }
+      toast({ title: "Đã xóa tour khỏi yêu thích" });
+      setDashboardData((prev) =>
+        prev
+          ? {
+              ...prev,
+              savedTours: prev.savedTours.filter(
+                (tour) => tour.id !== numericId
+              ),
+              favoriteTours: prev.favoriteTours.filter(
+                (tour) => tour.id !== numericId
+              ),
+              recentSaved: prev.recentSaved.filter(
+                (tour) => tour.id !== numericId
+              ),
+              stats: {
+                ...prev.stats,
+                savedTours: Math.max(0, prev.stats.savedTours - 1),
+              },
+            }
+          : prev
+      );
+      router.refresh();
+    } catch (error) {
+      console.error("remove wishlist error", error);
+      toast({
+        title: "Không thể xóa",
+        description:
+          error instanceof Error ? error.message : "Vui lòng thử lại sau",
+        variant: "destructive",
+      });
+    }
   };
 
   if (status === "loading") {
@@ -308,7 +427,11 @@ export default function AccountPage() {
                         <CalendarIcon className="w-6 h-6 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">{isLoadingDashboard && !dashboardData ? "..." : formatCount(overviewStats?.totalBookings ?? 0)}</p>
+                        <p className="text-2xl font-bold">
+                          {isLoadingDashboard && !dashboardData
+                            ? "..."
+                            : formatCount(overviewStats?.totalBookings ?? 0)}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           Tổng số đặt chỗ
                         </p>
@@ -325,7 +448,11 @@ export default function AccountPage() {
                       </div>
                       <div>
                         <p className="text-2xl font-bold">
-                          {isLoadingDashboard && !dashboardData ? "..." : formatCount(overviewStats?.savedTours ?? savedTours.length)}
+                          {isLoadingDashboard && !dashboardData
+                            ? "..."
+                            : formatCount(
+                                overviewStats?.savedTours ?? savedTours.length
+                              )}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Tour đã lưu
@@ -342,7 +469,13 @@ export default function AccountPage() {
                         <StarIcon className="w-6 h-6 text-purple-600" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">{isLoadingDashboard && !dashboardData ? "..." : (overviewStats ? overviewStats.averageSavedRating.toFixed(1) : "0.0")}</p>
+                        <p className="text-2xl font-bold">
+                          {isLoadingDashboard && !dashboardData
+                            ? "..."
+                            : overviewStats
+                            ? overviewStats.averageSavedRating.toFixed(1)
+                            : "0.0"}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           Điểm đánh giá trung bình
                         </p>
@@ -357,11 +490,16 @@ export default function AccountPage() {
                 <CardHeader>
                   <CardTitle>Hoạt động gần đây</CardTitle>
                 </CardHeader>
-                <CardContent>                  <div className="space-y-4">
+                <CardContent>
+                  {" "}
+                  <div className="space-y-4">
                     {isLoadingDashboard && !dashboardData && (
-                      <p className="text-sm text-muted-foreground">Đang tải hoạt động...</p>
+                      <p className="text-sm text-muted-foreground">
+                        Đang tải hoạt động...
+                      </p>
                     )}
-                    {!isLoadingDashboard && dashboardData &&
+                    {!isLoadingDashboard &&
+                      dashboardData &&
                       upcomingTrips.length === 0 &&
                       recentSavedTours.length === 0 && (
                         <p className="text-sm text-muted-foreground">
@@ -386,7 +524,9 @@ export default function AccountPage() {
                         </div>
                         {booking.tour?.slug ? (
                           <Button variant="outline" size="sm" asChild>
-                            <Link href={`/tours/${booking.tour.slug}`}>Xem chi tiết</Link>
+                            <Link href={`/tours/${booking.tour.slug}`}>
+                              Xem chi tiết
+                            </Link>
                           </Button>
                         ) : null}
                       </div>
@@ -431,7 +571,9 @@ export default function AccountPage() {
 
               <div className="space-y-6">
                 {isLoadingDashboard && !dashboardData && (
-                  <p className="text-sm text-muted-foreground">Đang tải lịch sử đặt chỗ...</p>
+                  <p className="text-sm text-muted-foreground">
+                    Đang tải lịch sử đặt chỗ...
+                  </p>
                 )}
                 {!isLoadingDashboard && bookingHistory.length === 0 && (
                   <p className="text-sm text-muted-foreground">
@@ -461,14 +603,17 @@ export default function AccountPage() {
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <MapPinIcon className="w-4 h-4" />
-                              <span>{booking.tour?.location || "Đang cập nhật"}</span>
+                              <span>
+                                {booking.tour?.location || "Đang cập nhật"}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <CalendarIcon className="w-4 h-4" />
                               <span>{formatDate(booking.departureDate)}</span>
                             </div>
                             <p>
-                              Mã đặt chỗ: {booking.reference || `#${booking.id}`}
+                              Mã đặt chỗ:{" "}
+                              {booking.reference || `#${booking.id}`}
                             </p>
                             <p>Số khách: {booking.guests ?? "—"}</p>
                           </div>
@@ -529,15 +674,24 @@ export default function AccountPage() {
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold">Tour yêu thích của bạn</h2>
                 <p className="text-muted-foreground">
-                  {isLoadingDashboard && !dashboardData ? "..." : formatCount(overviewStats?.savedTours ?? savedTours.length)} tour đã lưu
+                  {isLoadingDashboard && !dashboardData
+                    ? "..."
+                    : formatCount(
+                        overviewStats?.savedTours ?? savedTours.length
+                      )}{" "}
+                  tour đã lưu
                 </p>
               </div>
 
               {isLoadingDashboard && !dashboardData && (
-                <p className="text-sm text-muted-foreground">Đang tải danh sách tour đã lưu...</p>
+                <p className="text-sm text-muted-foreground">
+                  Đang tải danh sách tour đã lưu...
+                </p>
               )}
               {!isLoadingDashboard && savedTours.length === 0 && (
-                <p className="text-sm text-muted-foreground">Bạn chưa lưu tour nào.</p>
+                <p className="text-sm text-muted-foreground">
+                  Bạn chưa lưu tour nào.
+                </p>
               )}
               {favoriteTours.length > 0 && (
                 <Card className="bg-muted/40">
@@ -556,7 +710,11 @@ export default function AccountPage() {
                             {tour.location || "Đang cập nhật"}
                           </p>
                         </div>
-                        <StarRating value={tour.averageRating} size="sm" showValue={false} />
+                        <StarRating
+                          value={tour.averageRating}
+                          size="sm"
+                          showValue={false}
+                        />
                       </div>
                     ))}
                   </CardContent>
@@ -601,7 +759,8 @@ export default function AccountPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          {tour.originalPrice > tour.price && tour.originalPrice ? (
+                          {tour.originalPrice > tour.price &&
+                          tour.originalPrice ? (
                             <span className="text-sm text-muted-foreground line-through mr-2">
                               {formatCurrency(tour.originalPrice)}
                             </span>
@@ -624,6 +783,108 @@ export default function AccountPage() {
 
             {/* === Hồ sơ === */}
             <TabsContent value="profile" className="space-y-6">
+              <Card>
+                <CardHeader className="md:flex md:items-center md:justify-between">
+                  <div className="space-y-1">
+                    <CardTitle>Phương thức thanh toán ưa thích</CardTitle>
+                    <CardDescription>
+                      Chọn cách thanh toán mặc định khi đặt tour trực tuyến.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setManagePaymentOpen(true)}
+                  >
+                    Cập nhật tài khoản
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <RadioGroup
+                    value={paymentPreference}
+                    onValueChange={(value) =>
+                      updatePaymentPreference(value as PaymentPreference)
+                    }
+                    className="space-y-3"
+                  >
+                    <div className="flex items-start gap-3">
+                      <RadioGroupItem value="bank" id="pref-bank" />
+                      <Label htmlFor="pref-bank" className="flex-1 space-y-1">
+                        <span className="block font-medium">
+                          Chuyển khoản ngân hàng
+                        </span>
+                        <span className="block text-sm text-muted-foreground">
+                          Đặt cọc 5% qua tài khoản ngân hàng{" "}
+                          {paymentAccounts.bank ? "" : "(chưa có thông tin)"}.
+                        </span>
+                      </Label>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <RadioGroupItem value="momo" id="pref-momo" />
+                      <Label htmlFor="pref-momo" className="flex-1 space-y-1">
+                        <span className="block font-medium">Ví MoMo</span>
+                        <span className="block text-sm text-muted-foreground">
+                          Đặt cọc nhanh qua ví MoMo{" "}
+                          {paymentAccounts.momo ? "" : "(chưa có thông tin)"}.
+                        </span>
+                      </Label>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <RadioGroupItem value="consultation" id="pref-consult" />
+                      <Label
+                        htmlFor="pref-consult"
+                        className="flex-1 space-y-1"
+                      >
+                        <span className="block font-medium">
+                          Liên hệ tư vấn
+                        </span>
+                        <span className="block text-sm text-muted-foreground">
+                          Không đặt cọc online, đội ngũ tư vấn sẽ liên hệ trực
+                          tiếp.
+                        </span>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                  <div className="rounded-lg border bg-muted/40 p-4 space-y-3 text-sm">
+                    <div>
+                      <p className="font-medium">Tài khoản ngân hàng</p>
+                      {paymentAccounts.bank ? (
+                        <div className="text-muted-foreground space-y-1">
+                          <p>Ngân hàng: {paymentAccounts.bank.bankName}</p>
+                          <p>
+                            Chủ tài khoản: {paymentAccounts.bank.accountName}
+                          </p>
+                          <p>
+                            Số tài khoản: {paymentAccounts.bank.accountNumber}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">
+                          Chưa có thông tin ngân hàng.
+                        </p>
+                      )}
+                    </div>
+                    <Separator />
+                    <div>
+                      <p className="font-medium">Ví MoMo</p>
+                      {paymentAccounts.momo ? (
+                        <div className="text-muted-foreground space-y-1">
+                          <p>Chủ ví: {paymentAccounts.momo.ownerName}</p>
+                          <p>
+                            Số điện thoại: {paymentAccounts.momo.phoneNumber}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">
+                          Chưa có thông tin ví MoMo.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="grid md:grid-cols-2 gap-8">
                 <h2 className="text-2xl font-bold">Cài đặt hồ sơ</h2>
                 <Button
@@ -860,6 +1121,13 @@ export default function AccountPage() {
           </Tabs>
         </div>
       </main>
+
+      <ManagePaymentMethodDialog
+        open={managePaymentOpen}
+        onOpenChange={setManagePaymentOpen}
+        accounts={paymentAccounts}
+        onSave={handleSavePaymentAccounts}
+      />
 
       <SiteFooter />
     </div>

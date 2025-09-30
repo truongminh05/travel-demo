@@ -35,6 +35,7 @@ model Bookings {
   BookingReference String     @unique
   UserID           Int
   TourID           Int
+  PaymentMethodID  Int?
   BookingDate      DateTime?  @default(now()) @db.Timestamp(6)
   DepartureDate    DateTime   @db.Timestamp(6)
   NumberOfGuests   Int
@@ -42,26 +43,36 @@ model Bookings {
   Taxes            Decimal?   @db.Decimal(10, 2)
   TotalAmount      Decimal    @db.Decimal(10, 2)
   Status           String?
+  BookingType      String?
+  PaymentStatus    String?
   SpecialRequests  String?
   Tours            Tours      @relation(fields: [TourID], references: [TourID], onDelete: NoAction, onUpdate: NoAction)
   Users            Users      @relation(fields: [UserID], references: [UserID], onDelete: NoAction, onUpdate: NoAction)
+  PaymentMethod    UserPaymentMethods? @relation(fields: [PaymentMethodID], references: [PaymentMethodID], onDelete: SetNull, onUpdate: NoAction)
   Payments         Payments[]
   Reviews          Reviews[]
 
   @@index([TourID])
   @@index([UserID])
+  @@index([PaymentMethodID])
 }
 
 model Payments {
-  PaymentID     Int       @id @default(autoincrement())
-  BookingID     Int?
-  PaymentDate   DateTime? @default(now()) @db.Timestamp(6)
-  Amount        Decimal?  @db.Decimal(10, 2)
-  PaymentMethod String?
-  TransactionID String?
-  Status        String?
-  CreatedAt     DateTime? @default(now()) @db.Timestamp(6)
-  Bookings      Bookings? @relation(fields: [BookingID], references: [BookingID], onDelete: NoAction, onUpdate: NoAction)
+  PaymentID        Int       @id @default(autoincrement())
+  BookingID        Int?
+  PaymentMethodID  Int?
+  PaymentDate      DateTime? @default(now()) @db.Timestamp(6)
+  Amount           Decimal?  @db.Decimal(10, 2)
+  PaymentMethod    String?
+  TransactionID    String?
+  Status           String?
+  ConfirmationDate DateTime? @db.Timestamp(6)
+  CreatedAt        DateTime? @default(now()) @db.Timestamp(6)
+  Bookings         Bookings? @relation(fields: [BookingID], references: [BookingID], onDelete: NoAction, onUpdate: NoAction)
+  UserPaymentMethod UserPaymentMethods? @relation(fields: [PaymentMethodID], references: [PaymentMethodID], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([BookingID])
+  @@index([PaymentMethodID])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -158,6 +169,26 @@ model Users {
   Bookings       Bookings[]
   Reviews        Reviews[]
   Wishlists      Wishlists[]
+  UserPaymentMethods UserPaymentMethods[]
+}
+
+model UserPaymentMethods {
+  PaymentMethodID Int       @id @default(autoincrement())
+  UserID          Int
+  Type            String
+  BankName        String?
+  AccountName     String?
+  AccountNumber   String?
+  MomoOwner       String?
+  MomoPhone       String?
+  CreatedAt       DateTime   @default(now()) @db.Timestamp(6)
+  UpdatedAt       DateTime   @updatedAt @db.Timestamp(6)
+  Users           Users      @relation(fields: [UserID], references: [UserID], onDelete: Cascade, onUpdate: NoAction)
+  Bookings        Bookings[]
+  Payments        Payments[]
+
+  @@index([UserID])
+  @@index([Type])
 }
 
 model Wishlists {
@@ -170,6 +201,3 @@ model Wishlists {
 
   @@index([UserID])
 }
-
-
-

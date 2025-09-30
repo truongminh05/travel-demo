@@ -4,7 +4,12 @@ import { supabase } from "@/lib/supabaseClient";
 import BackButton from "@/app/blog/[slug]/back-button";
 import TourGalleryTabs from "@/components/tour-gallery-tabs";
 import { TourRatingPanel } from "@/components/tour-rating-panel";
+import { SaveTourButton } from "@/components/save-tour-button";
+import { BookTourButton } from "@/components/book-tour-button";
 import type { GalleryCard } from "@/components/tour-gallery-tabs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import supabaseAdmin from "@/lib/supabaseAdmin";
 
 
 export const dynamic = "force-dynamic";
@@ -146,6 +151,9 @@ export default async function TourDetailPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const session = await getServerSession(authOptions);
+  const userIdRaw = (session?.user as { id?: string | number | null } | undefined)?.id ?? null;
+  const userId = userIdRaw != null && !Number.isNaN(Number(userIdRaw)) ? Number(userIdRaw) : null;
   const { slug } = await params; // Next.js 15
   const tour = await getTourBySlug(slug);
   if (!tour) return notFound();
@@ -155,6 +163,17 @@ export default async function TourDetailPage({
     getHighlights(tour.id),
     getSchedule(tour.id),
   ]);
+
+  let isSaved = false;
+  if (userId) {
+    const { data: favorite } = await supabaseAdmin
+      .from("Wishlists")
+      .select("WishlistID")
+      .eq("UserID", userId)
+      .eq("TourID", tour.id)
+      .maybeSingle();
+    isSaved = Boolean(favorite);
+  }
 
   const schedule = normalizeSchedule(scheduleRows);
 
@@ -296,6 +315,17 @@ export default async function TourDetailPage({
         />
       </section>
 
+      <section className="container mx-auto px-4 max-w-4xl py-6 md:py-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <BookTourButton tourId={tour.id} tourSlug={tour.slug} unitPrice={tour.price != null ? Number(tour.price) : undefined} />
+          <SaveTourButton
+            tourId={tour.id}
+            tourSlug={tour.slug}
+            initialSaved={isSaved}
+          />
+        </div>
+      </section>
+
       {tour.description && (
         <section className="container mx-auto px-4 max-w-4xl py-8 md:py-10">
           <p className="text-base leading-7 text-muted-foreground whitespace-pre-wrap">
@@ -319,10 +349,3 @@ export default async function TourDetailPage({
     </div>
   );
 }
-
-
-
-
-
-
-

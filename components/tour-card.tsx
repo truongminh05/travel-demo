@@ -5,14 +5,15 @@
 import { MapPinIcon, CalendarIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { StarRating } from "@/components/star-rating";
+import { BookTourButton } from "@/components/book-tour-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react"; // ADDED: Import React
+import React from "react";
 
 interface TourCardProps {
-  id: string;
+  id: number | string;
   slug: string;
   title: string;
   location: string;
@@ -24,10 +25,9 @@ interface TourCardProps {
   duration: string;
   description?: string;
   cancellation: string;
-  boldKeywords?: string[]; // ADDED: Prop để nhận các từ khóa cần in đậm
+  boldKeywords?: string[];
 }
 
-// Hàm format tiền tệ VNĐ (không đổi)
 const formatCurrency = (value: number) => {
   if (!value) return "0 ₫";
   return new Intl.NumberFormat("vi-VN", {
@@ -37,10 +37,8 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// Escape regex special chars in keywords
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-// Improved HighlightedText (an toàn với ký tự đặc biệt)
 const HighlightedText = ({
   text,
   keywords = [],
@@ -90,8 +88,9 @@ export function TourCard({
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
-  // 👉 Dùng 1 biến href thống nhất cho mọi Link
   const detailHref = slug ? `/tours/${encodeURIComponent(slug)}` : "#";
+  const numericId = Number(id);
+  const isNumericId = Number.isFinite(numericId) && numericId > 0;
 
   return (
     <Card
@@ -100,7 +99,6 @@ export function TourCard({
       aria-labelledby={`tour-title-${id}`}
     >
       <div className="relative aspect-[4/3] overflow-hidden">
-        {/* SỬA: dùng detailHref, không dùng `${slug || id}` */}
         <Link
           href={detailHref}
           className="cursor-pointer"
@@ -142,7 +140,6 @@ export function TourCard({
               id={`tour-title-${id}`}
               className="font-semibold text-lg text-foreground line-clamp-2"
             >
-              {/* SỬA: cũng dùng detailHref */}
               <Link
                 href={detailHref}
                 className="hover:text-primary transition-colors"
@@ -192,14 +189,22 @@ export function TourCard({
             <span className="text-xs text-muted-foreground -mt-1">/ người</span>
           </div>
 
-          {/* Giữ asChild đúng chuẩn: chỉ 1 child là <Link> */}
-          <Button size="sm" asChild disabled={!slug}>
-            <Link href={detailHref}>Xem chi tiết</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" asChild disabled={!slug}>
+              <Link href={detailHref}>Xem chi tiết</Link>
+            </Button>
+            {isNumericId && (
+              <BookTourButton
+                tourId={numericId}
+                tourSlug={slug}
+                unitPrice={price}
+                buttonVariant="secondary"
+                buttonSize="sm"
+              />
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
-
-
