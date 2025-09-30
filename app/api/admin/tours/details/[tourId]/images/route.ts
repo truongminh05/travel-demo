@@ -31,10 +31,15 @@ async function ensureUploadsDir() {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ tourId: string }> } // <-- Promise
+  { params }: { params: { tourId: string } }
 ) {
-  const { tourId: t } = await params; // <-- await
-  const tourId = Number.parseInt(t, 10);
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  if (!session || role !== "Admin") {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
+
+  const tourId = Number.parseInt(params.tourId, 10);
   if (!Number.isInteger(tourId) || tourId <= 0) {
     return NextResponse.json(
       { message: "tourId không hợp lệ" },

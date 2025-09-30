@@ -1,7 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  Suspense,
+  type FormEvent,
+  useRef,
+} from "react";
 import { TourCard } from "@/components/tour-card";
+import { TourMap } from "@/components/tour-map";
 import { TourListItem } from "@/components/tour-list-item";
 import { ViewToggle, type ViewType } from "@/components/view-toggle";
 import { TourFilters, type FilterState } from "@/components/tour-filters";
@@ -17,6 +25,7 @@ import {
   TourListSkeleton,
 } from "@/components/skeleton-loader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // Định nghĩa lại categories ở đây để dễ truy cập
 const categories = [
@@ -47,6 +56,28 @@ export default function ToursPage() {
     sortBy: "featured",
     dateRange: undefined,
   });
+
+  const [searchValue, setSearchValue] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleClearSearch = () => {
+    setSearchValue("");
+    setSubmittedSearch(""); // Xóa cả tìm kiếm đã gửi để reset danh sách tour
+    setIsSuggestionsVisible(false);
+    inputRef.current?.focus(); // Focus lại vào ô input
+  };
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = searchValue.trim();
+    setSubmittedSearch(value);
+    setSearchValue(value);
+    setIsSuggestionsVisible(false);
+  };
 
   // Effect chỉ fetch tất cả tour một lần khi trang được tải
   useEffect(() => {
@@ -114,6 +145,15 @@ export default function ToursPage() {
       );
     }
 
+    const query = submittedSearch.trim().toLowerCase();
+    if (query) {
+      toursToFilter = toursToFilter.filter((tour) => {
+        const titleMatch = tour.title?.toLowerCase().includes(query);
+        const locationMatch = tour.location?.toLowerCase().includes(query);
+        return titleMatch || locationMatch;
+      });
+    }
+
     // 3. Sắp xếp
     switch (filters.sortBy) {
       case "price-low":
@@ -128,8 +168,42 @@ export default function ToursPage() {
     }
 
     setFilteredTours(toursToFilter);
-  }, [filters, activeCategory, allTours]);
+  }, [filters, activeCategory, allTours, submittedSearch]);
+  // Effect để tạo danh sách gợi ý khi người dùng gõ
+  useEffect(() => {
+    if (searchValue.trim().length > 1) {
+      const query = searchValue.toLowerCase();
+      const filteredSuggestions = allTours
+        .filter(
+          (tour) =>
+            tour.title.toLowerCase().includes(query) ||
+            tour.location.toLowerCase().includes(query)
+        )
+        .slice(0, 5); // Giới hạn 5 kết quả
 
+      setSuggestions(filteredSuggestions);
+      setIsSuggestionsVisible(true);
+    } else {
+      setSuggestions([]);
+      setIsSuggestionsVisible(false);
+    }
+  }, [searchValue, allTours]);
+
+  // Effect để đóng danh sách gợi ý khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsSuggestionsVisible(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   // Logic đếm số tour trong mỗi danh mục
   const tourCounts = useMemo(() => {
     const counts = {
@@ -150,6 +224,15 @@ export default function ToursPage() {
 
   const renderTourContent = () => {
     if (isLoading) {
+      if (currentView === "map") {
+        return (
+          <div className="space-y-4">
+            <div className="h-12 rounded-lg bg-muted animate-pulse" />
+            <div className="h-[420px] rounded-lg bg-muted animate-pulse" />
+          </div>
+        );
+      }
+
       const skeletons = Array.from({ length: 6 });
       return currentView === "grid" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -193,13 +276,21 @@ export default function ToursPage() {
       );
     }
 
-    return currentView === "grid" ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredTours.map((tour) => (
-          <TourCard key={tour.id} {...tour} />
-        ))}
-      </div>
-    ) : (
+    if (currentView === "map") {
+      return <TourMap tours={filteredTours} />;
+    }
+
+    if (currentView === "grid") {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredTours.map((tour) => (
+            <TourCard key={tour.id} {...tour} />
+          ))}
+        </div>
+      );
+    }
+
+    return (
       <div className="space-y-8">
         {filteredTours.map((tour) => (
           <TourListItem key={tour.id} {...tour} />
@@ -214,14 +305,50 @@ export default function ToursPage() {
       <section className="bg-gradient-to-br from-primary/5 to-accent/10 py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <MotionWrapper direction="up" duration={800}>
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-                Tìm kiếm Tour hoàn hảo cho bạn
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Khám phá và trải nghiệm du lịch nội địa tuyệt vời, được thiết kế
-                phù hợp với sở thích của bạn
-              </p>
+            <div className="text-center">
+              <div className="mb-8">
+                <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+                  Tìm kiếm Tour hoàn hảo cho bạn
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Khám phá và trải nghiệm du lịch nội địa tuyệt vời, được thiết
+                  kế phù hợp với sở thích của bạn
+                </p>
+              </div>
+
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto"
+              >
+                <div className="relative flex-1">
+                  <Input
+                    ref={inputRef}
+                    value={searchValue}
+                    onChange={(event) => setSearchValue(event.target.value)}
+                    placeholder="Tìm kiếm tour theo tên hoặc địa điểm..."
+                    className="w-full pr-10" // Thêm padding phải để không che nút "x"
+                    autoComplete="off"
+                  />
+                  {searchValue && (
+                    <button
+                      type="button" // Quan trọng: để không submit form
+                      onClick={handleClearSearch}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                      aria-label="Xóa tìm kiếm"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <Button type="submit">Tìm kiếm</Button>
+              </form>
             </div>
           </MotionWrapper>
         </div>
@@ -262,4 +389,3 @@ export default function ToursPage() {
     </div>
   );
 }
-
