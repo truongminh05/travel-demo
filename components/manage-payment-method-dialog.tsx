@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { PaymentAccounts } from "@/lib/payment-methods";
 
 interface ManagePaymentMethodDialogProps {
@@ -21,7 +28,9 @@ interface ManagePaymentMethodDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   accounts?: PaymentAccounts;
-  onSave?: (accounts: PaymentAccounts) => Promise<PaymentAccounts> | PaymentAccounts | void;
+  onSave?: (
+    accounts: PaymentAccounts
+  ) => Promise<PaymentAccounts> | PaymentAccounts | void;
 }
 
 type BankFormState = {
@@ -46,6 +55,22 @@ const defaultMomo: MomoFormState = {
   phoneNumber: "",
 };
 
+const BANK_OPTIONS = [
+  "Vietcombank",
+  "Techcombank",
+  "VietinBank",
+  "BIDV",
+  "Agribank",
+  "ACB",
+  "MB Bank",
+  "Sacombank",
+  "TPBank",
+  "VPBank",
+  "SHB",
+  "OCB",
+  "HDBank",
+];
+
 export function ManagePaymentMethodDialog({
   trigger,
   open: controlledOpen,
@@ -55,22 +80,38 @@ export function ManagePaymentMethodDialog({
 }: ManagePaymentMethodDialogProps) {
   const [open, setOpen] = useState(false);
   const [bank, setBank] = useState<BankFormState>(defaultBank);
+  const [bankOption, setBankOption] = useState<string>("none");
   const [momo, setMomo] = useState<MomoFormState>(defaultMomo);
   const [isSaving, setIsSaving] = useState(false);
 
   const isControlled = typeof controlledOpen === "boolean";
   const dialogOpen = isControlled ? controlledOpen : open;
 
+  const bankOptions = useMemo(() => {
+    const unique = new Set(BANK_OPTIONS);
+    if (accounts?.bank?.bankName) {
+      unique.add(accounts.bank.bankName);
+    }
+    return Array.from(unique).sort((a, b) => a.localeCompare(b));
+  }, [accounts?.bank?.bankName]);
+
   useEffect(() => {
     if (!dialogOpen) return;
+
     if (accounts?.bank) {
+      const existingOption = bankOptions.find(
+        (option) =>
+          option.toLowerCase() === accounts.bank!.bankName.toLowerCase()
+      );
+      setBankOption(existingOption ?? "other");
       setBank({
         bankName: accounts.bank.bankName ?? "",
         accountName: accounts.bank.accountName ?? "",
         accountNumber: accounts.bank.accountNumber ?? "",
       });
     } else {
-      setBank(defaultBank);
+      setBankOption("none");
+      setBank({ ...defaultBank });
     }
 
     if (accounts?.momo) {
@@ -81,49 +122,66 @@ export function ManagePaymentMethodDialog({
     } else {
       setMomo(defaultMomo);
     }
-  }, [accounts, dialogOpen]);
+  }, [accounts, bankOptions, dialogOpen]);
 
   const handleOpenChange = (next: boolean) => {
     if (!isControlled) setOpen(next);
     onOpenChange?.(next);
   };
 
-  const handleSave = async () => {
-    const trimmedBank: BankFormState = {
-      bankName: bank.bankName.trim(),
-      accountName: bank.accountName.trim(),
-      accountNumber: bank.accountNumber.replace(/\s+/g, "").trim(),
-    };
+  const trimmedBankName = (
+    bankOption && bankOption !== "other" && bankOption !== "none"
+      ? bankOption
+      : bank.bankName
+  ).trim();
+  const trimmedBankAccountName = bank.accountName.trim();
+  const trimmedBankAccountNumber = bank.accountNumber.replace(/\s+/g, "").trim();
+  const bankFilled = (
+    bankOption !== "none" &&
+    Boolean(
+      trimmedBankName || trimmedBankAccountName || trimmedBankAccountNumber
+    )
+  );
+  const bankValid =
+    !bankFilled ||
+    (Boolean(trimmedBankName) &&
+      Boolean(trimmedBankAccountName) &&
+      Boolean(trimmedBankAccountNumber));
 
-    const trimmedMomo: MomoFormState = {
-      ownerName: momo.ownerName.trim(),
-      phoneNumber: momo.phoneNumber.replace(/\s+/g, "").trim(),
-    };
+  const trimmedMomoOwner = momo.ownerName.trim();
+  const trimmedMomoPhone = momo.phoneNumber.replace(/\s+/g, "").trim();
+  const momoFilled = Boolean(trimmedMomoOwner || trimmedMomoPhone);
+  const momoValid =
+    !momoFilled || (Boolean(trimmedMomoOwner) && Boolean(trimmedMomoPhone));
+
+  const canSave = bankValid && momoValid;
+
+  const handleSave = async () => {
+    if (!canSave) {
+      return;
+    }
 
     const nextAccounts: PaymentAccounts = {};
 
-    if (
-      trimmedBank.bankName ||
-      trimmedBank.accountName ||
-      trimmedBank.accountNumber
-    ) {
+    if (bankFilled) {
       nextAccounts.bank = {
-        bankName: trimmedBank.bankName,
-        accountName: trimmedBank.accountName,
-        accountNumber: trimmedBank.accountNumber,
+        bankName: trimmedBankName,
+        accountName: trimmedBankAccountName,
+        accountNumber: trimmedBankAccountNumber,
       };
     }
 
-    if (trimmedMomo.ownerName || trimmedMomo.phoneNumber) {
+    if (momoFilled) {
       nextAccounts.momo = {
-        ownerName: trimmedMomo.ownerName,
-        phoneNumber: trimmedMomo.phoneNumber,
+        ownerName: trimmedMomoOwner,
+        phoneNumber: trimmedMomoPhone,
       };
     }
 
     try {
       setIsSaving(true);
       const result = await onSave?.(nextAccounts);
+
       if (result && typeof result === "object") {
         if (result.bank) {
           setBank({
@@ -131,14 +189,25 @@ export function ManagePaymentMethodDialog({
             accountName: result.bank.accountName ?? "",
             accountNumber: result.bank.accountNumber ?? "",
           });
+          const matched = bankOptions.find(
+            (option) =>
+              option.toLowerCase() === result.bank!.bankName.toLowerCase()
+          );
+          setBankOption(matched ?? "other");
+        } else {
+          setBank({ ...defaultBank });
+          setBankOption("none");
         }
         if (result.momo) {
           setMomo({
             ownerName: result.momo.ownerName ?? "",
             phoneNumber: result.momo.phoneNumber ?? "",
           });
+        } else {
+          setMomo(defaultMomo);
         }
       }
+
       handleOpenChange(false);
     } catch (error) {
       console.error("[ManagePaymentMethodDialog] save error", error);
@@ -166,16 +235,47 @@ export function ManagePaymentMethodDialog({
 
           <TabsContent value="bank" className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label htmlFor="bankName">Tên ngân hàng</Label>
-              <Input
-                id="bankName"
-                value={bank.bankName}
-                onChange={(event) =>
-                  setBank((prev) => ({ ...prev, bankName: event.target.value }))
-                }
-                placeholder="Ví dụ: Vietcombank"
-              />
+              <Label>Chọn ngân hàng</Label>
+              <Select
+                value={bankOption}
+                onValueChange={(value) => {
+                  setBankOption(value);
+                  if (value === "none") {
+                    setBank({ ...defaultBank });
+                  } else if (value !== "other") {
+                    setBank((prev) => ({ ...prev, bankName: value }));
+                  } else {
+                    setBank((prev) => ({ ...prev, bankName: "" }));
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn ngân hàng thanh toán" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Không lưu</SelectItem>
+                  {bankOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="other">Khác</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            {bankOption === "other" ? (
+              <div className="space-y-2">
+                <Label htmlFor="bankName">Tên ngân hàng</Label>
+                <Input
+                  id="bankName"
+                  value={bank.bankName}
+                  onChange={(event) =>
+                    setBank((prev) => ({ ...prev, bankName: event.target.value }))
+                  }
+                  placeholder="Ví dụ: Vietcombank"
+                />
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label htmlFor="accountName">Chủ tài khoản</Label>
               <Input
@@ -198,6 +298,11 @@ export function ManagePaymentMethodDialog({
                 placeholder="Nhập số tài khoản"
               />
             </div>
+            {bankFilled && !bankValid ? (
+              <p className="text-xs text-destructive">
+                Vui lòng cung cấp đầy đủ tên ngân hàng, chủ tài khoản và số tài khoản.
+              </p>
+            ) : null}
           </TabsContent>
 
           <TabsContent value="momo" className="space-y-4 pt-4">
@@ -223,6 +328,11 @@ export function ManagePaymentMethodDialog({
                 placeholder="Ví dụ: 0901 234 567"
               />
             </div>
+            {momoFilled && !momoValid ? (
+              <p className="text-xs text-destructive">
+                Cần nhập đầy đủ tên chủ ví và số điện thoại.
+              </p>
+            ) : null}
           </TabsContent>
         </Tabs>
 
@@ -230,7 +340,7 @@ export function ManagePaymentMethodDialog({
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Hủy
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isSaving || !canSave}>
             {isSaving ? "Đang lưu..." : "Lưu"}
           </Button>
         </DialogFooter>
@@ -238,3 +348,6 @@ export function ManagePaymentMethodDialog({
     </Dialog>
   );
 }
+
+
+

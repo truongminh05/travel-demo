@@ -9,13 +9,23 @@ const parseId = (value: string) => {
 };
 
 type StatusPayload = {
-  status: string;
+  status?: string;
+  paymentStatus?: string;
+  note?: string;
 };
 
-const ALLOWED_STATUSES = new Set([
+const ALLOWED_BOOKING_STATUSES = new Set([
   "pending_consultation",
   "pending_deposit",
   "confirmed",
+  "cancelled",
+]);
+
+const ALLOWED_PAYMENT_STATUSES = new Set([
+  "pending",
+  "paid",
+  "failed",
+  "refunded",
   "cancelled",
 ]);
 
@@ -36,28 +46,67 @@ export async function PATCH(
   }
 
   const payload = (await req.json().catch(() => null)) as StatusPayload | null;
-  if (!payload?.status || !ALLOWED_STATUSES.has(payload.status)) {
-    return NextResponse.json({ message: "Invalid status" }, { status: 400 });
+  if (!payload) {
+    return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
+  }
+
+  const updates: Record<string, unknown> = {};
+
+  if (payload.status) {
+    if (!ALLOWED_BOOKING_STATUSES.has(payload.status)) {
+      return NextResponse.json({ message: "Invalid status" }, { status: 400 });
+    }
+    updates.Status = payload.status;
+  }
+
+  if (payload.paymentStatus) {
+    if (!ALLOWED_PAYMENT_STATUSES.has(payload.paymentStatus)) {
+      return NextResponse.json({ message: "Invalid payment status" }, { status: 400 });
+    }
+    updates.PaymentStatus = payload.paymentStatus;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ message: "No updates provided" }, { status: 400 });
+  }
+
+  if (payload.paymentStatus === "paid") {
+    updates.Status = "confirmed";
   }
 
   try {
     const { data, error } = await supabaseAdmin
       .from("Bookings")
-      .update({ Status: payload.status })
+      .update({
+        ...updates,
+        UpdatedAt: new Date().toISOString(),
+      })
       .eq("BookingID", bookingIdNum)
-      .select("BookingID, Status")
+      .select(
+        "BookingID, Status, PaymentStatus, BookingReference, PaymentMethodID"
+      )
       .single();
 
     if (error || !data) {
       throw error ?? new Error("Booking not found");
     }
 
-    if (payload.status === "confirmed") {
+    if (updates.PaymentStatus === "paid" || updates.Status === "confirmed") {
       await supabaseAdmin
         .from("Payments")
-        .update({ Status: "Paid" })
+        .update({
+          Status: "Paid",
+          ConfirmationDate: new Date().toISOString(),
+        })
         .eq("BookingID", bookingIdNum)
-        .eq("Status", "Pending");
+        .not("Status", "eq", "Paid");
+    }
+
+    if (updates.PaymentStatus && updates.PaymentStatus !== "paid") {
+      await supabaseAdmin
+        .from("Payments")
+        .update({ Status: updates.PaymentStatus })
+        .eq("BookingID", bookingIdNum);
     }
 
     return NextResponse.json({ booking: data });

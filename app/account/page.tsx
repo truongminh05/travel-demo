@@ -231,6 +231,11 @@ export default function AccountPage() {
   };
 
   useEffect(() => {
+    if (status !== "authenticated") {
+      setPaymentAccounts({});
+      return;
+    }
+
     let active = true;
 
     const syncPaymentMethods = async () => {
@@ -256,7 +261,7 @@ export default function AccountPage() {
       }
     };
 
-    syncPaymentMethods();
+    void syncPaymentMethods();
 
     return () => {
       active = false;
@@ -271,10 +276,23 @@ export default function AccountPage() {
     toast({ title: "Đã cập nhật phương thức thanh toán" });
   };
 
-  const handleSavePaymentAccounts = (next: PaymentAccounts) => {
-    setPaymentAccounts(next);
-    savePaymentMethods(next);
-    toast({ title: "Đã lưu phương thức thanh toán" });
+  const handleSavePaymentAccounts = async (next: PaymentAccounts) => {
+    try {
+      const updated = await savePaymentMethods(next);
+      setPaymentAccounts(updated);
+      toast({ title: "Đã lưu phương thức thanh toán" });
+      return updated;
+    } catch (error) {
+      toast({
+        title: "Không thể lưu phương thức thanh toán",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   const handlePreferenceChange = (field: string, value: boolean) => {
@@ -984,12 +1002,39 @@ export default function AccountPage() {
                     <CardTitle>Hành động tài khoản</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <div className="rounded-md border bg-muted/40 p-4 space-y-3 text-sm">
+                      <div>
+                        <p className="font-medium text-foreground">Ngân hàng</p>
+                        {paymentAccounts.bank ? (
+                          <div className="text-muted-foreground space-y-1">
+                            <p>Ngân hàng: {paymentAccounts.bank.bankName}</p>
+                            <p>Chủ tài khoản: {paymentAccounts.bank.accountName}</p>
+                            <p>Số tài khoản: {paymentAccounts.bank.accountNumber}</p>
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground">Chưa lưu tài khoản ngân hàng.</p>
+                        )}
+                      </div>
+                      <Separator />
+                      <div>
+                        <p className="font-medium text-foreground">Ví MoMo</p>
+                        {paymentAccounts.momo ? (
+                          <div className="text-muted-foreground space-y-1">
+                            <p>Chủ ví: {paymentAccounts.momo.ownerName}</p>
+                            <p>Số điện thoại: {paymentAccounts.momo.phoneNumber}</p>
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground">Chưa lưu ví MoMo.</p>
+                        )}
+                      </div>
+                    </div>
                     <Button
                       variant="outline"
                       className="w-full justify-start bg-transparent"
+                      onClick={() => setManagePaymentOpen(true)}
                     >
                       <CreditCardIcon className="w-4 h-4 mr-2" />
-                      Phương thức thanh toán
+                      Quản lý phương thức thanh toán
                     </Button>
 
                     <Button
@@ -1133,3 +1178,4 @@ export default function AccountPage() {
     </div>
   );
 }
+

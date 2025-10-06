@@ -34,6 +34,17 @@ const normalizePaymentMethod = (value: unknown) => {
   return "bank" as const;
 };
 
+const parsePaymentMethodId = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
 export async function POST(
   req: Request,
   context: { params: Promise<{ tourId: string }> }
@@ -59,9 +70,17 @@ export async function POST(
   const payload = await req.json().catch(() => ({}));
   const guestsRaw = payload?.guests;
   const paymentMethod = normalizePaymentMethod(payload?.paymentMethod);
+  const paymentMethodId = parsePaymentMethodId(payload?.paymentMethodId);
   const requestedGuests = Number.isFinite(Number(guestsRaw))
     ? Math.max(1, Number(guestsRaw))
     : 1;
+
+  if (paymentMethod !== "consultation" && !paymentMethodId) {
+    return NextResponse.json(
+      { message: "Thiếu thông tin phương thức thanh toán" },
+      { status: 400 }
+    );
+  }
 
   const departureDateIso = (() => {
     const value = typeof payload?.departureDate === "string" ? payload.departureDate : null;
@@ -91,7 +110,9 @@ export async function POST(
       paymentMethod === "consultation" ? 0 : total * DEPOSIT_RATE;
 
     const bookingStatus =
-      paymentMethod === "consultation" ? "pending_consultation" : "confirmed";
+      paymentMethod === "consultation" ? "pending_consultation" : "pending_deposit";
+    const paymentStatus = paymentMethod === "consultation" ? "pending" : "pending";
+    const bookingType = paymentMethod === "consultation" ? "consultation" : "online";
 
     const { data: booking, error } = await supabaseAdmin
       .from("Bookings")
@@ -105,9 +126,12 @@ export async function POST(
         TotalAmount: toDecimal(total),
         DepartureDate: departureDateIso,
         Status: bookingStatus,
+        PaymentStatus: paymentStatus,
+        BookingType: bookingType,
+        PaymentMethodID: paymentMethodId,
       })
       .select(
-        "BookingID, BookingReference, DepartureDate, Subtotal, Taxes, TotalAmount, Status"
+        "BookingID, BookingReference, DepartureDate, Subtotal, Taxes, TotalAmount, Status, PaymentStatus"
       )
       .single();
 
@@ -120,10 +144,11 @@ export async function POST(
         .from("Payments")
         .insert({
           BookingID: booking.BookingID,
+          PaymentMethodID: paymentMethodId,
           PaymentDate: new Date().toISOString(),
           Amount: toDecimal(depositAmount),
           PaymentMethod: paymentMethod === "bank" ? "Bank Transfer" : "MoMo",
-          Status: "Paid",
+          Status: "pending",
         });
 
       if (paymentError) {
@@ -135,7 +160,7 @@ export async function POST(
       message:
         paymentMethod === "consultation"
           ? "Yêu cầu tư vấn đã được ghi nhận"
-          : "Đặt tour thành công",
+          : "Đã tạo yêu cầu đặt tour, vui lòng hoàn tất chuyển khoản",
       booking,
       deposit:
         paymentMethod === "consultation"

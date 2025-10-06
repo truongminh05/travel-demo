@@ -170,27 +170,28 @@ export function TourCard({
           </div>
         </div>
 
-        <div className="flex items-end justify-between border-t pt-4">
-          <div className="flex flex-col">
-            {hasDiscount && (
+        <div className="border-t pt-4 space-y-3">
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              {hasDiscount && (
+                <span
+                  className="text-sm text-muted-foreground line-through"
+                  aria-label={`Giá gốc: ${formatCurrency(originalPrice!)}`}
+                >
+                  {formatCurrency(originalPrice!)}
+                </span>
+              )}
               <span
-                className="text-sm text-muted-foreground line-through"
-                aria-label={`Giá gốc: ${formatCurrency(originalPrice!)}`}
+                className="text-xl font-bold text-primary"
+                aria-label={`Giá hiện tại: ${formatCurrency(price)} mỗi người`}
               >
-                {formatCurrency(originalPrice!)}
+                {formatCurrency(price)}
               </span>
-            )}
-            <span
-              className="text-xl font-bold text-primary"
-              aria-label={`Giá hiện tại: ${formatCurrency(price)} mỗi người`}
-            >
-              {formatCurrency(price)}
-            </span>
-            <span className="text-xs text-muted-foreground -mt-1">/ người</span>
+              <span className="text-xs text-muted-foreground -mt-1">/ người</span>
+            </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button size="sm" asChild disabled={!slug}>
+          <div className="flex flex-col gap-2">
+            <Button size="sm" asChild disabled={!slug} className="w-full">
               <Link href={detailHref}>Xem chi tiết</Link>
             </Button>
             {isNumericId && (
@@ -200,6 +201,7 @@ export function TourCard({
                 unitPrice={price}
                 buttonVariant="secondary"
                 buttonSize="sm"
+                buttonClassName="w-full"
               />
             )}
           </div>

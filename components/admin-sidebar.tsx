@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   HomeIcon,
   PackageIcon,
+  CalendarCheckIcon,
   UsersIcon,
   SettingsIcon,
   LogOutIcon,
@@ -24,6 +25,7 @@ export function AdminSidebar() {
   const navItems = [
     { href: "/admin/dashboard", icon: HomeIcon, label: "Dashboard" },
     { href: "/admin/tours", icon: PackageIcon, label: "Tours" },
+    { href: "/admin/bookings", icon: CalendarCheckIcon, label: "Bookings" },
     { href: "/admin/users", icon: UsersIcon, label: "Users" },
     { href: "/admin/blog", icon: FileTextIcon, label: "Blog" },
     { href: "/admin/settings", icon: SettingsIcon, label: "Settings" },

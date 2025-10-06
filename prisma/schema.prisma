@@ -45,6 +45,8 @@ model Bookings {
   Status           String?
   BookingType      String?
   PaymentStatus    String?
+  CreatedAt        DateTime?   @default(now()) @db.Timestamp(6)
+  UpdatedAt        DateTime?   @updatedAt @db.Timestamp(6)
   SpecialRequests  String?
   Tours            Tours      @relation(fields: [TourID], references: [TourID], onDelete: NoAction, onUpdate: NoAction)
   Users            Users      @relation(fields: [UserID], references: [UserID], onDelete: NoAction, onUpdate: NoAction)
@@ -201,3 +203,4 @@ model Wishlists {
 
   @@index([UserID])
 }
+
