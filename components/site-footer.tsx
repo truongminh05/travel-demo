@@ -28,9 +28,10 @@ export function SiteFooter() {
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Discover amazing domestic adventures with our curated travel
-              experiences. From mountain retreats to coastal escapes, we help
-              you find your perfect getaway.
+              Khám phá những chuyến phiêu lưu trong nước tuyệt vời với những
+              trải nghiệm du lịch được tuyển chọn kỹ lưỡng của chúng tôi. Từ
+              những kỳ nghỉ dưỡng trên núi đến những chuyến phiêu lưu ven biển,
+              chúng tôi sẽ giúp bạn tìm được kỳ nghỉ hoàn hảo.
             </p>
             <div className="flex space-x-3">
               <Button variant="ghost" size="sm" className="p-2">
@@ -47,14 +48,14 @@ export function SiteFooter() {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Quick Links</h4>
+            <h4 className="font-semibold text-foreground">Liên kết nhanh</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/tours"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  All Tours
+                  Tất cả Tours
                 </Link>
               </li>
               <li>
@@ -62,7 +63,7 @@ export function SiteFooter() {
                   href="/blog"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Travel Blog
+                  Bài viết du lịch
                 </Link>
               </li>
               <li>
@@ -70,7 +71,7 @@ export function SiteFooter() {
                   href="/about"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  About Us
+                  Về chúng tôi
                 </Link>
               </li>
               <li>
@@ -78,7 +79,7 @@ export function SiteFooter() {
                   href="/contact"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Contact
+                  Liên hệ
                 </Link>
               </li>
               <li>
@@ -86,22 +87,22 @@ export function SiteFooter() {
                   href="/account"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  My Account
+                  Tài khoản của tôi
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Tour Categories */}
+          {/* Danh mục tour */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Tour Categories</h4>
+            <h4 className="font-semibold text-foreground">Danh mục tour</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/tours?category=domestic-tours"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Domestic Tours
+                  Tour nội địa
                 </Link>
               </li>
               <li>
@@ -109,7 +110,7 @@ export function SiteFooter() {
                   href="/tours?category=combo-packages"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Combo Packages
+                  Gói Combo
                 </Link>
               </li>
               <li>
@@ -117,7 +118,7 @@ export function SiteFooter() {
                   href="/tours?category=experiences"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Experiences
+                  Kinh nghiệm
                 </Link>
               </li>
               <li>
@@ -125,7 +126,7 @@ export function SiteFooter() {
                   href="/tours?category=adventure-tours"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Adventure Tours
+                  Chuyến tham quan mạo hiểm
                 </Link>
               </li>
               <li>
@@ -133,7 +134,7 @@ export function SiteFooter() {
                   href="/tours?category=family-trips"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Family Trips
+                  Mẹo gia đình
                 </Link>
               </li>
             </ul>
@@ -141,28 +142,28 @@ export function SiteFooter() {
 
           {/* Contact & Newsletter */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Stay Connected</h4>
+            <h4 className="font-semibold text-foreground">Liên hệ chúng tôi</h4>
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <PhoneIcon className="w-4 h-4" />
-                <span>1-800-TRAVEL</span>
+                <span>+84384349471</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MailIcon className="w-4 h-4" />
-                <span>info@traveldom.com</span>
+                <span>minhhuyenkuti@gmail.com</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPinIcon className="w-4 h-4" />
-                <span>123 Travel St, Adventure City</span>
+                <span>23 Nguyễn Hữu Tiến, Tây Thạnh, Tân Phú, TP.HCM</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Newsletter</p>
+              <p className="text-sm font-medium text-foreground">Tư vấn</p>
               <div className="flex gap-2">
-                <Input placeholder="Your email" className="text-sm" />
+                <Input placeholder="Email của bạn" className="text-sm" />
                 <Button size="sm" className="bg-primary hover:bg-primary/90">
-                  Subscribe
+                  Đặt mua
                 </Button>
               </div>
             </div>
@@ -171,26 +172,27 @@ export function SiteFooter() {
 
         <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 TravelDom. All rights reserved.
+            © 2025 TravelDom. Trải nghiệm những cuộc phiêu lưu thú vị cùng chúng
+            tôi.
           </p>
           <div className="flex gap-6 text-sm">
             <Link
               href="/privacy"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              Privacy Policy
+              Chính sách bảo mật
             </Link>
             <Link
               href="/terms"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              Terms of Service
+              Điều khoản dịch vụ
             </Link>
             <Link
               href="/cookies"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              Cookie Policy
+              Chính sách cookie
             </Link>
           </div>
         </div>

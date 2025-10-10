@@ -89,7 +89,7 @@ export default async function BlogPage({
         <section className="py-20 bg-gradient-to-br from-primary/10 to-primary/5">
           <div className="container mx-auto px-4 text-center">
             <Badge variant="outline" className="mb-4">
-              Blog Du lịch
+              Bài Viết Du lịch
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
               Câu chuyện & Mẹo từ chuyên gia

@@ -16,28 +16,34 @@ import Link from "next/link";
 export default function AboutPage() {
   const teamMembers = [
     {
-      name: "Sarah Johnson",
-      role: "Người sáng lập & CEO",
-      image: "/professional-woman-ceo-travel-industry.png",
+      name: "Trương Văn Minh",
+      role: "Người thực hiện & Viết code",
+      image: "/avata-web.jpg",
       bio: "Với hơn 15 năm trong ngành du lịch, Sarah sáng lập TravelDom để mang đến những chuyến phiêu lưu nội địa cho tất cả mọi người.",
     },
     {
-      name: "Michael Chen",
-      role: "Trưởng phòng Điều hành",
-      image: "/professional-man-operations-manager-travel.png",
+      name: "Lê Thị Phước",
+      role: "Thiết kế hình ảnh đồ họa",
+      image: "/professional-woman-ceo-travel-industry.png",
       bio: "Michael đảm bảo mọi chuyến tour diễn ra suôn sẻ với chuyên môn về hậu cần và dịch vụ khách hàng.",
     },
     {
-      name: "Emily Rodriguez",
-      role: "Nhà thiết kế trải nghiệm du lịch",
+      name: "Võ Phước Triệu",
+      role: "Chuyên gia phát triển tour",
       image: "/placeholder-493u9.png",
       bio: "Emily xây dựng hành trình độc đáo, khai thác những viên ngọc ẩn và trải nghiệm chân thực của mỗi điểm đến.",
     },
     {
-      name: "David Thompson",
+      name: "Lê Hữu Luân",
       role: "Giám đốc phát triển bền vững",
       image: "/placeholder-ihg94.png",
       bio: "David dẫn dắt cam kết du lịch có trách nhiệm, đảm bảo tour mang lại lợi ích cho cộng đồng địa phương và bảo vệ môi trường.",
+    },
+    {
+      name: "Nguyễn lý Chí Khang",
+      role: "Chuyên gia tiếp thị kỹ thuật số",
+      image: "/placeholder-0t1a0.png",
+      bio: "Sophia quản lý sự hiện diện trực tuyến của chúng tôi, kết nối với khách hàng và chia sẻ đam mê du lịch nội địa.",
     },
   ];
 
@@ -88,13 +94,13 @@ export default function AboutPage() {
                 Về TravelDom
               </Badge>
               <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
-                Khám phá kho báu ẩn giấu của nước Mỹ
+                Khám phá kho báu ẩn giấu cùng chúng tôi
               </h1>
               <p className="text-xl text-muted-foreground mb-8 text-balance leading-relaxed">
                 Chúng tôi đam mê giới thiệu sự đa dạng và vẻ đẹp tuyệt vời của
-                du lịch nội địa. Từ bờ Đông đến bờ Tây, chúng tôi mang đến trải
-                nghiệm chân thực gắn kết bạn với văn hóa địa phương, cảnh quan
-                hùng vĩ và những kỷ niệm khó quên.
+                du lịch nội địa. Từ trong nước đến ngoài nước, chúng tôi mang
+                đến trải nghiệm chân thực gắn kết bạn với văn hóa địa phương,
+                cảnh quan hùng vĩ và những kỷ niệm khó quên.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link href="/#tours" className="inline-flex">
@@ -139,22 +145,22 @@ export default function AboutPage() {
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
                     Thành lập năm 2009, TravelDom ra đời từ một niềm tin đơn
-                    giản: nước Mỹ sở hữu những điểm đến tuyệt vời nhất thế giới
-                    ngay trong “sân sau”. Khi nhiều người tìm kiếm phiêu lưu ở
-                    nước ngoài, chúng tôi nhìn thấy tiềm năng chưa khai phá
-                    trong du lịch nội địa.
+                    giản: Du lịch TravelDom mang đến những điểm đến tuyệt vời
+                    nhất thế giới ngay trong nước. Khi nhiều người tìm kiếm
+                    phiêu lưu ở nước ngoài, chúng tôi nhìn thấy tiềm năng chưa
+                    khai phá trong du lịch nội địa.
                   </p>
                   <p>
                     Từ những chuyến dã ngoại cuối tuần đến công viên quốc gia
                     gần đó, chúng tôi đã phát triển thành nền tảng toàn diện với
-                    hàng trăm trải nghiệm chọn lọc tại 50 bang. Hơn 50,000 du
-                    khách đã đồng hành và khám phá từ bờ biển Maine đến sa mạc
-                    Arizona.
+                    hàng trăm trải nghiệm chọn lọc tại 36 tỉnh và ra đến bên
+                    ngoài nước. Hơn 50,000 du khách đã đồng hành và khám phá từ
+                    khắp cả nước cho tới du lịch châu Âu.
                   </p>
                   <p>
                     Ngày nay, chúng tôi tự hào là công ty du lịch nội địa hàng
-                    đầu tại Mỹ, cam kết du lịch bền vững, hỗ trợ cộng đồng và
-                    tạo nên ký ức suốt đời.
+                    đầu tại Việt Nam, cam kết du lịch bền vững, hỗ trợ cộng đồng
+                    và tạo nên ký ức suốt đời.
                   </p>
                 </div>
               </div>
@@ -266,7 +272,7 @@ export default function AboutPage() {
                     Nhà điều hành tour nội địa xuất sắc
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    Travel Excellence Awards 2023
+                    Giải thưởng Du lịch Xuất sắc 2023
                   </p>
                 </CardContent>
               </Card>
@@ -277,7 +283,7 @@ export default function AboutPage() {
                     Dịch vụ khách hàng hàng đầu
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    Tourism Industry Awards 2023
+                    Giải thưởng Ngành Du lịch 2023
                   </p>
                 </CardContent>
               </Card>
@@ -288,7 +294,7 @@ export default function AboutPage() {
                     Lãnh đạo du lịch bền vững
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    Green Travel Certification 2023
+                    Chứng nhận Du lịch Xanh 2023
                   </p>
                 </CardContent>
               </Card>

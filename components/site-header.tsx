@@ -13,11 +13,11 @@ export function SiteHeader() {
   const user = session?.user as any;
 
   const navigationItems = [
-    { name: "Home", href: "/" },
+    { name: "Trang chủ", href: "/" },
     { name: "Tours", href: "/tours" },
-    { name: "Blog", href: "/blog" },
-    { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: "Bài viết", href: "/blog" },
+    { name: "Giới thiệu", href: "/about" },
+    { name: "Liên hệ", href: "/contact" },
   ];
 
   return (
@@ -121,18 +121,18 @@ export function SiteHeader() {
                 <div className="border-t pt-6 space-y-4">
                   <div className="space-y-3">
                     <a
-                      href="tel:+1-800-TRAVEL"
+                      href="tel:+84384349471"
                       className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <PhoneIcon className="w-4 h-4" />
-                      1-800-TRAVEL
+                      +84384349471
                     </a>
                     <a
-                      href="mailto:info@traveldom.com"
+                      href="mailto:minhhuyenkuti@gmail.com"
                       className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <MailIcon className="w-4 h-4" />
-                      info@traveldom.com
+                      minhhuyenkuti@gmail.com
                     </a>
                   </div>
                   <Button
