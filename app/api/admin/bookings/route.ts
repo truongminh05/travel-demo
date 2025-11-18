@@ -14,16 +14,20 @@ type BookingRow = {
   PaymentStatus: string | null;
   BookingType: string | null;
   PaymentMethodID: number | null;
+
+  // ⚠️ SỬA Ở ĐÂY: Tours & Users là ARRAY (Supabase trả về [...])
   Tours: {
     TourID: number;
     Title: string;
     TourSlug: string;
-  } | null;
+  }[];
+
   Users: {
     UserID: number;
     FullName: string | null;
     Email: string;
-  } | null;
+  }[];
+
   Payments: Array<{
     PaymentID: number;
     Amount: number | string | null;
@@ -58,6 +62,7 @@ const normalizeStatus = (status: string | null | undefined) => {
 export async function GET() {
   const session = await getServerSession(authOptions);
   const role = (session?.user as { role?: string } | undefined)?.role;
+
   if (role !== "Admin") {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
@@ -89,6 +94,19 @@ export async function GET() {
 
     const bookings = (data ?? []).map((row) => {
       const booking = row as BookingRow;
+
+      // Lấy tour đầu tiên (vì mỗi booking chỉ có 1 TourID)
+      const tourRel =
+        Array.isArray(booking.Tours) && booking.Tours.length > 0
+          ? booking.Tours[0]
+          : null;
+
+      // Lấy user đầu tiên
+      const userRel =
+        Array.isArray(booking.Users) && booking.Users.length > 0
+          ? booking.Users[0]
+          : null;
+
       return {
         id: booking.BookingID,
         reference: booking.BookingReference,
@@ -100,20 +118,23 @@ export async function GET() {
         paymentStatus: (booking.PaymentStatus ?? "pending").toLowerCase(),
         bookingType: (booking.BookingType ?? "online").toLowerCase(),
         paymentMethodId: booking.PaymentMethodID,
-        tour: booking.Tours
+
+        tour: tourRel
           ? {
-              id: booking.Tours.TourID,
-              title: booking.Tours.Title,
-              slug: booking.Tours.TourSlug,
+              id: tourRel.TourID,
+              title: tourRel.Title,
+              slug: tourRel.TourSlug,
             }
           : null,
-        customer: booking.Users
+
+        customer: userRel
           ? {
-              id: booking.Users.UserID,
-              name: booking.Users.FullName,
-              email: booking.Users.Email,
+              id: userRel.UserID,
+              name: userRel.FullName,
+              email: userRel.Email,
             }
           : null,
+
         payments: Array.isArray(booking.Payments)
           ? booking.Payments.map((payment) => ({
               id: payment.PaymentID,

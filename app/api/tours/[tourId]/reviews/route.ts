@@ -15,6 +15,14 @@ const computeAverage = (
   return divisor ? Number((total / divisor).toFixed(2)) : 0;
 };
 
+// Row kèm quan hệ Users (Supabase trả Users = array)
+type ReviewWithUser = {
+  Rating: number | null;
+  Comment: string | null;
+  ReviewDate: string | null;
+  Users: { FullName: string | null; ProfilePicture: string | null }[] | null;
+};
+
 export async function GET(
   _req: Request,
   context: { params: Promise<{ tourId: string }> }
@@ -26,7 +34,8 @@ export async function GET(
   }
 
   const session = await getServerSession(authOptions);
-  const userIdRaw = (session?.user as { id?: string | number | null } | undefined)?.id ?? null;
+  const userIdRaw =
+    (session?.user as { id?: string | number | null } | undefined)?.id ?? null;
   const userId =
     userIdRaw && Number.isFinite(Number(userIdRaw)) ? Number(userIdRaw) : null;
 
@@ -69,14 +78,24 @@ export async function GET(
     }
   }
 
-  const reviews = (data ?? []).map((row) => ({
-    rating: row.Rating ?? 0,
-    comment: row.Comment ?? "",
-    userName: row.Users?.FullName ?? "Khách",
-    userAvatar: row.Users?.ProfilePicture ?? null,
-    date: row.ReviewDate ?? null,
-  }));
-  const averageRating = computeAverage(data ?? [], count);
+  const rows = (data ?? []) as ReviewWithUser[];
+
+  const reviews = rows.map((row) => {
+    const user =
+      row.Users && Array.isArray(row.Users) && row.Users.length > 0
+        ? row.Users[0]
+        : null;
+
+    return {
+      rating: row.Rating ?? 0,
+      comment: row.Comment ?? "",
+      userName: user?.FullName ?? "Khách",
+      userAvatar: user?.ProfilePicture ?? null,
+      date: row.ReviewDate ?? null,
+    };
+  });
+
+  const averageRating = computeAverage(rows, count);
 
   return NextResponse.json({
     averageRating,
@@ -91,7 +110,8 @@ export async function POST(
   context: { params: Promise<{ tourId: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  const userIdRaw = (session?.user as { id?: string | number | null } | undefined)?.id ?? null;
+  const userIdRaw =
+    (session?.user as { id?: string | number | null } | undefined)?.id ?? null;
 
   if (!userIdRaw) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -195,20 +215,30 @@ export async function POST(
     );
   }
 
-  const reviews = (ratings ?? []).map((row) => ({
-    rating: row.Rating ?? 0,
-    comment: row.Comment ?? "",
-    userName: row.Users?.FullName ?? "Khách",
-    userAvatar: row.Users?.ProfilePicture ?? null,
-    date: row.ReviewDate ?? null,
-  }));
-  const averageRating = computeAverage(ratings ?? [], count);
+  const rows2 = (ratings ?? []) as ReviewWithUser[];
+
+  const reviews = rows2.map((row) => {
+    const user =
+      row.Users && Array.isArray(row.Users) && row.Users.length > 0
+        ? row.Users[0]
+        : null;
+
+    return {
+      rating: row.Rating ?? 0,
+      comment: row.Comment ?? "",
+      userName: user?.FullName ?? "Khách",
+      userAvatar: user?.ProfilePicture ?? null,
+      date: row.ReviewDate ?? null,
+    };
+  });
+
+  const averageRating = computeAverage(rows2, count);
 
   const { error: updateTourError } = await supabaseAdmin
     .from("Tours")
     .update({
       AverageRating: averageRating,
-      ReviewCount: count != null ? String(count) : null,
+      ReviewCount: count ?? null, // cột của bạn là integer → dùng số
       UpdatedAt: reviewDate,
     })
     .eq("TourID", tourIdNum);

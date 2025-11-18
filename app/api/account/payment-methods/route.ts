@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import supabaseAdmin from "@/lib/supabaseAdmin";
 
-type PaymentMethodRow = {
+/**
+ * Row của bảng UserPaymentMethods theo schema Supabase bạn gửi
+ */
+interface PaymentMethodRow {
   PaymentMethodID: number;
   UserID: number;
   Type: string;
@@ -12,9 +15,13 @@ type PaymentMethodRow = {
   AccountNumber: string | null;
   MomoOwner: string | null;
   MomoPhone: string | null;
-};
+  // CreatedAt/UpdatedAt không dùng tới nên khỏi khai báo cũng được
+}
 
-type PaymentAccountsResponse = {
+/**
+ * Data trả về cho client: gom thành 2 khối bank + momo
+ */
+interface PaymentAccountsResponse {
   bank?: {
     id: number;
     bankName: string;
@@ -26,330 +33,393 @@ type PaymentAccountsResponse = {
     ownerName: string;
     phoneNumber: string;
   };
-};
+}
 
-const mapAccounts = (
-  rows: PaymentMethodRow[] | null | undefined
-): PaymentAccountsResponse => {
+/**
+ * Body mà client gửi lên khi POST
+ */
+interface PaymentAccountsInput {
+  bank?: {
+    bankName?: string;
+    accountName?: string;
+    accountNumber?: string;
+  } | null;
+  momo?: {
+    ownerName?: string;
+    phoneNumber?: string;
+  } | null;
+}
+
+/**
+ * Map từ mảng row DB → object gọn cho client
+ */
+function mapAccounts(rows: PaymentMethodRow[]): PaymentAccountsResponse {
   const result: PaymentAccountsResponse = {};
-  (rows ?? []).forEach((row) => {
+
+  for (const row of rows) {
     if (row.Type === "bank") {
-      if (row.BankName && row.AccountName && row.AccountNumber) {
+      // chỉ map nếu có dữ liệu
+      if (row.BankName || row.AccountName || row.AccountNumber) {
         result.bank = {
           id: row.PaymentMethodID,
-          bankName: row.BankName,
-          accountName: row.AccountName,
-          accountNumber: row.AccountNumber,
+          bankName: row.BankName ?? "",
+          accountName: row.AccountName ?? "",
+          accountNumber: row.AccountNumber ?? "",
         };
       }
     } else if (row.Type === "momo") {
-      if (row.MomoOwner && row.MomoPhone) {
+      if (row.MomoOwner || row.MomoPhone) {
         result.momo = {
           id: row.PaymentMethodID,
-          ownerName: row.MomoOwner,
-          phoneNumber: row.MomoPhone,
+          ownerName: row.MomoOwner ?? "",
+          phoneNumber: row.MomoPhone ?? "",
         };
       }
     }
-  });
+  }
 
   return result;
-};
+}
 
-type BankPayload = {
-  bankName: string;
-  accountName: string;
-  accountNumber: string;
-};
+/**
+ * Helper lấy userId từ session (vì bạn dùng Users riêng, không phải Supabase Auth)
+ */
+function getUserIdFromSession(session: any): number | null {
+  if (!session) return null;
 
-type MomoPayload = {
-  ownerName: string;
-  phoneNumber: string;
-};
+  // tuỳ bạn lưu như thế nào trong NextAuth, mình thử lấy lần lượt:
+  const raw =
+    session.user?.dbUserId ?? session.user?.userId ?? session.user?.id ?? null;
 
-type SavePayload = {
-  bank?: Partial<BankPayload> | null;
-  momo?: Partial<MomoPayload> | null;
-};
+  if (raw == null) return null;
 
-const parseBankPayload = (value: unknown): BankPayload | null => {
-  if (value == null) return null;
-  if (typeof value !== "object") {
-    throw new Error("Dữ liệu tài khoản ngân hàng không hợp lệ");
-  }
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : null;
+}
 
-  const { bankName, accountName, accountNumber } = value as {
-    bankName?: unknown;
-    accountName?: unknown;
-    accountNumber?: unknown;
-  };
-
-  const normalized: BankPayload = {
-    bankName: typeof bankName === "string" ? bankName.trim() : "",
-    accountName: typeof accountName === "string" ? accountName.trim() : "",
-    accountNumber:
-      typeof accountNumber === "string"
-        ? accountNumber.replace(/\s+/g, "").trim()
-        : "",
-  };
-
-  const hasAny =
-    normalized.bankName !== "" ||
-    normalized.accountName !== "" ||
-    normalized.accountNumber !== "";
-
-  if (!hasAny) return null;
-
-  if (
-    !normalized.bankName ||
-    !normalized.accountName ||
-    !normalized.accountNumber
-  ) {
-    throw new Error(
-      "Vui lòng điền đầy đủ thông tin ngân hàng (tên ngân hàng, chủ tài khoản, số tài khoản)."
-    );
-  }
-
-  return normalized;
-};
-
-const parseMomoPayload = (value: unknown): MomoPayload | null => {
-  if (value == null) return null;
-  if (typeof value !== "object") {
-    throw new Error("Dữ liệu tài khoản MoMo không hợp lệ");
-  }
-
-  const { ownerName, phoneNumber } = value as {
-    ownerName?: unknown;
-    phoneNumber?: unknown;
-  };
-
-  const normalized: MomoPayload = {
-    ownerName: typeof ownerName === "string" ? ownerName.trim() : "",
-    phoneNumber:
-      typeof phoneNumber === "string"
-        ? phoneNumber.replace(/\s+/g, "").trim()
-        : "",
-  };
-
-  const hasAny =
-    normalized.ownerName !== "" || normalized.phoneNumber !== "";
-  if (!hasAny) return null;
-
-  if (!normalized.ownerName || !normalized.phoneNumber) {
-    throw new Error(
-      "Vui lòng điền đầy đủ thông tin MoMo (tên chủ ví, số điện thoại)."
-    );
-  }
-
-  return normalized;
-};
-
-const resolveUserId = async (): Promise<number | null> => {
-  const session = await getServerSession(authOptions);
-  const userIdRaw =
-    (session?.user as { id?: string | number | null } | undefined)?.id ?? null;
-
-  if (userIdRaw == null) {
-    return null;
-  }
-
-  const userId = Number(userIdRaw);
-  return Number.isFinite(userId) ? userId : null;
-};
-
-export async function GET() {
-  const userId = await resolveUserId();
-  if (userId == null) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
+/**
+ * GET: lấy thông tin bank + momo hiện tại của user
+ */
+export async function GET(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    const userId = getUserIdFromSession(session as any);
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { data, error } = await supabaseAdmin
       .from("UserPaymentMethods")
       .select(
-        "PaymentMethodID, Type, BankName, AccountName, AccountNumber, MomoOwner, MomoPhone"
+        "PaymentMethodID, UserID, Type, BankName, AccountName, AccountNumber, MomoOwner, MomoPhone"
       )
       .eq("UserID", userId);
 
     if (error) {
-      throw error;
+      console.error("[account/payment-methods] GET Supabase error", error);
+      return NextResponse.json(
+        { message: "Failed to load payment methods" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(mapAccounts(data));
+    const rows = (data ?? []) as PaymentMethodRow[];
+    const payload = mapAccounts(rows);
+
+    return NextResponse.json<PaymentAccountsResponse>(payload);
   } catch (error) {
     console.error("[account/payment-methods] GET error", error);
     return NextResponse.json(
-      { message: "Không thể tải phương thức thanh toán" },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
 }
 
+/**
+ * POST: cập nhật / tạo mới thông tin bank + momo cho user
+ */
 export async function POST(req: Request) {
-  const userId = await resolveUserId();
-  if (userId == null) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const payload = (await req.json().catch(() => ({}))) as SavePayload;
-
-  let bankPayload: BankPayload | null = null;
-  let momoPayload: MomoPayload | null = null;
-
   try {
-    bankPayload = parseBankPayload(payload.bank ?? null);
-    momoPayload = parseMomoPayload(payload.momo ?? null);
-  } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Dữ liệu không hợp lệ" },
-      { status: 400 }
-    );
-  }
+    const session = await getServerSession(authOptions);
+    const userId = getUserIdFromSession(session as any);
 
-  try {
-    const { data: existing, error: fetchError } = await supabaseAdmin
-      .from("UserPaymentMethods")
-      .select("PaymentMethodID, Type")
-      .eq("UserID", userId);
-
-    if (fetchError) {
-      throw fetchError;
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const existingBank = (existing ?? []).find((row) => row.Type === "bank");
-    const existingMomo = (existing ?? []).find((row) => row.Type === "momo");
+    const body = (await req.json()) as PaymentAccountsInput;
 
-    if (bankPayload) {
-      if (existingBank) {
-        const { error: updateBankError } = await supabaseAdmin
-          .from("UserPaymentMethods")
-          .update({
-            BankName: bankPayload.bankName,
-            AccountName: bankPayload.accountName,
-            AccountNumber: bankPayload.accountNumber,
-            UpdatedAt: new Date().toISOString(),
-          })
-          .eq("PaymentMethodID", existingBank.PaymentMethodID);
+    const bank = body.bank ?? null;
+    const momo = body.momo ?? null;
 
-        if (updateBankError) {
-          throw updateBankError;
+    // ========== BANK ==========
+    if (bank) {
+      const bankName = (bank.bankName ?? "").trim();
+      const accountName = (bank.accountName ?? "").trim();
+      const accountNumber = (bank.accountNumber ?? "").trim();
+
+      const allEmpty = !bankName && !accountName && !accountNumber;
+
+      const { data: existingBank, error: bankQueryError } = await supabaseAdmin
+        .from("UserPaymentMethods")
+        .select("PaymentMethodID")
+        .eq("UserID", userId)
+        .eq("Type", "bank")
+        .maybeSingle();
+
+      if (bankQueryError) {
+        console.error(
+          "[account/payment-methods] POST query bank error",
+          bankQueryError
+        );
+        return NextResponse.json(
+          { message: "Failed to update bank info" },
+          { status: 500 }
+        );
+      }
+
+      if (allEmpty) {
+        // user xoá sạch → xoá record nếu có
+        if (existingBank?.PaymentMethodID) {
+          const { error: deleteBankError } = await supabaseAdmin
+            .from("UserPaymentMethods")
+            .delete()
+            .eq("PaymentMethodID", existingBank.PaymentMethodID);
+
+          if (deleteBankError) {
+            console.error(
+              "[account/payment-methods] DELETE bank error",
+              deleteBankError
+            );
+          }
         }
       } else {
-        const { error: insertBankError } = await supabaseAdmin
-          .from("UserPaymentMethods")
-          .insert({
-            UserID: userId,
-            Type: "bank",
-            BankName: bankPayload.bankName,
-            AccountName: bankPayload.accountName,
-            AccountNumber: bankPayload.accountNumber,
-          });
+        if (existingBank?.PaymentMethodID) {
+          // update
+          const { error: updateBankError } = await supabaseAdmin
+            .from("UserPaymentMethods")
+            .update({
+              Type: "bank",
+              BankName: bankName,
+              AccountName: accountName,
+              AccountNumber: accountNumber,
+            })
+            .eq("PaymentMethodID", existingBank.PaymentMethodID);
 
-        if (insertBankError) {
-          throw insertBankError;
+          if (updateBankError) {
+            console.error(
+              "[account/payment-methods] UPDATE bank error",
+              updateBankError
+            );
+            return NextResponse.json(
+              { message: "Failed to update bank info" },
+              { status: 500 }
+            );
+          }
+        } else {
+          // insert mới
+          const { error: insertBankError } = await supabaseAdmin
+            .from("UserPaymentMethods")
+            .insert({
+              UserID: userId,
+              Type: "bank",
+              BankName: bankName,
+              AccountName: accountName,
+              AccountNumber: accountNumber,
+            });
+
+          if (insertBankError) {
+            console.error(
+              "[account/payment-methods] INSERT bank error",
+              insertBankError
+            );
+            return NextResponse.json(
+              { message: "Failed to save bank info" },
+              { status: 500 }
+            );
+          }
         }
-      }
-    } else if (existingBank) {
-      const { error: deleteBankError } = await supabaseAdmin
-        .from("UserPaymentMethods")
-        .delete()
-        .eq("PaymentMethodID", existingBank.PaymentMethodID);
-
-      if (deleteBankError) {
-        throw deleteBankError;
       }
     }
 
-    if (momoPayload) {
-      if (existingMomo) {
-        const { error: updateMomoError } = await supabaseAdmin
-          .from("UserPaymentMethods")
-          .update({
-            MomoOwner: momoPayload.ownerName,
-            MomoPhone: momoPayload.phoneNumber,
-            UpdatedAt: new Date().toISOString(),
-          })
-          .eq("PaymentMethodID", existingMomo.PaymentMethodID);
+    // ========== MOMO ==========
+    if (momo) {
+      const ownerName = (momo.ownerName ?? "").trim();
+      const phoneNumber = (momo.phoneNumber ?? "").trim();
 
-        if (updateMomoError) {
-          throw updateMomoError;
+      const allEmpty = !ownerName && !phoneNumber;
+
+      const { data: existingMomo, error: momoQueryError } = await supabaseAdmin
+        .from("UserPaymentMethods")
+        .select("PaymentMethodID")
+        .eq("UserID", userId)
+        .eq("Type", "momo")
+        .maybeSingle();
+
+      if (momoQueryError) {
+        console.error(
+          "[account/payment-methods] POST query momo error",
+          momoQueryError
+        );
+        return NextResponse.json(
+          { message: "Failed to update momo info" },
+          { status: 500 }
+        );
+      }
+
+      if (allEmpty) {
+        if (existingMomo?.PaymentMethodID) {
+          const { error: deleteMomoError } = await supabaseAdmin
+            .from("UserPaymentMethods")
+            .delete()
+            .eq("PaymentMethodID", existingMomo.PaymentMethodID);
+
+          if (deleteMomoError) {
+            console.error(
+              "[account/payment-methods] DELETE momo error",
+              deleteMomoError
+            );
+          }
         }
       } else {
-        const { error: insertMomoError } = await supabaseAdmin
-          .from("UserPaymentMethods")
-          .insert({
-            UserID: userId,
-            Type: "momo",
-            MomoOwner: momoPayload.ownerName,
-            MomoPhone: momoPayload.phoneNumber,
-          });
+        if (existingMomo?.PaymentMethodID) {
+          const { error: updateMomoError } = await supabaseAdmin
+            .from("UserPaymentMethods")
+            .update({
+              Type: "momo",
+              MomoOwner: ownerName,
+              MomoPhone: phoneNumber,
+            })
+            .eq("PaymentMethodID", existingMomo.PaymentMethodID);
 
-        if (insertMomoError) {
-          throw insertMomoError;
+          if (updateMomoError) {
+            console.error(
+              "[account/payment-methods] UPDATE momo error",
+              updateMomoError
+            );
+            return NextResponse.json(
+              { message: "Failed to update momo info" },
+              { status: 500 }
+            );
+          }
+        } else {
+          const { error: insertMomoError } = await supabaseAdmin
+            .from("UserPaymentMethods")
+            .insert({
+              UserID: userId,
+              Type: "momo",
+              MomoOwner: ownerName,
+              MomoPhone: phoneNumber,
+            });
+
+          if (insertMomoError) {
+            console.error(
+              "[account/payment-methods] INSERT momo error",
+              insertMomoError
+            );
+            return NextResponse.json(
+              { message: "Failed to save momo info" },
+              { status: 500 }
+            );
+          }
         }
-      }
-    } else if (existingMomo) {
-      const { error: deleteMomoError } = await supabaseAdmin
-        .from("UserPaymentMethods")
-        .delete()
-        .eq("PaymentMethodID", existingMomo.PaymentMethodID);
-
-      if (deleteMomoError) {
-        throw deleteMomoError;
       }
     }
 
-    const { data: updated, error: updatedError } = await supabaseAdmin
+    // Sau khi xử lý xong → trả lại trạng thái mới
+    const { data: updated, error: reloadError } = await supabaseAdmin
       .from("UserPaymentMethods")
       .select(
-        "PaymentMethodID, Type, BankName, AccountName, AccountNumber, MomoOwner, MomoPhone"
+        "PaymentMethodID, UserID, Type, BankName, AccountName, AccountNumber, MomoOwner, MomoPhone"
       )
       .eq("UserID", userId);
 
-    if (updatedError) {
-      throw updatedError;
+    if (reloadError) {
+      console.error("[account/payment-methods] RELOAD error", reloadError);
+      return NextResponse.json(
+        { message: "Failed to reload payment methods" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(mapAccounts(updated));
+    const rows = (updated ?? []) as PaymentMethodRow[];
+    const payload = mapAccounts(rows);
+
+    return NextResponse.json<PaymentAccountsResponse>(payload);
   } catch (error) {
     console.error("[account/payment-methods] POST error", error);
     return NextResponse.json(
-      { message: "Không thể lưu phương thức thanh toán" },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
 }
 
+/**
+ * DELETE: xoá theo type (?type=bank|momo)
+ */
 export async function DELETE(req: Request) {
-  const userId = await resolveUserId();
-  if (userId == null) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const url = new URL(req.url);
-  const type = url.searchParams.get("type");
-
-  if (type !== "bank" && type !== "momo") {
-    return NextResponse.json({ message: "Invalid type" }, { status: 400 });
-  }
-
   try {
-    const { error } = await supabaseAdmin
+    const session = await getServerSession(authOptions);
+    const userId = getUserIdFromSession(session as any);
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const type = url.searchParams.get("type");
+
+    if (type !== "bank" && type !== "momo") {
+      return NextResponse.json(
+        { message: "Invalid type, must be 'bank' or 'momo'" },
+        { status: 400 }
+      );
+    }
+
+    const { error: deleteError } = await supabaseAdmin
       .from("UserPaymentMethods")
       .delete()
       .eq("UserID", userId)
       .eq("Type", type);
 
-    if (error) {
-      throw error;
+    if (deleteError) {
+      console.error("[account/payment-methods] DELETE error", deleteError);
+      return NextResponse.json(
+        { message: "Failed to delete payment method" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ success: true });
+    // Trả lại trạng thái mới
+    const { data: updated, error: reloadError } = await supabaseAdmin
+      .from("UserPaymentMethods")
+      .select(
+        "PaymentMethodID, UserID, Type, BankName, AccountName, AccountNumber, MomoOwner, MomoPhone"
+      )
+      .eq("UserID", userId);
+
+    if (reloadError) {
+      console.error(
+        "[account/payment-methods] RELOAD after delete error",
+        reloadError
+      );
+      return NextResponse.json(
+        { message: "Failed to reload payment methods" },
+        { status: 500 }
+      );
+    }
+
+    const rows = (updated ?? []) as PaymentMethodRow[];
+    const payload = mapAccounts(rows);
+
+    return NextResponse.json<PaymentAccountsResponse>(payload);
   } catch (error) {
     console.error("[account/payment-methods] DELETE error", error);
     return NextResponse.json(
-      { message: "Không thể xoá phương thức thanh toán" },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
