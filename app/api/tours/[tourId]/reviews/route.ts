@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import supabaseAdmin from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const clampRating = (value: number) => Math.min(5, Math.max(1, value));
 
@@ -32,8 +32,20 @@ export async function GET(
 
   const { data, error, count } = await supabaseAdmin
     .from("Reviews")
-    .select("Rating", { count: "exact" })
-    .eq("TourID", tourIdNum);
+    .select(
+      `
+      Rating,
+      Comment,
+      ReviewDate,
+      Users:UserID (
+        FullName,
+        ProfilePicture
+      )
+    `,
+      { count: "exact" }
+    )
+    .eq("TourID", tourIdNum)
+    .order("ReviewDate", { ascending: false });
 
   if (error) {
     console.error("[tour reviews] get error", error);
@@ -57,12 +69,20 @@ export async function GET(
     }
   }
 
+  const reviews = (data ?? []).map((row) => ({
+    rating: row.Rating ?? 0,
+    comment: row.Comment ?? "",
+    userName: row.Users?.FullName ?? "Khách",
+    userAvatar: row.Users?.ProfilePicture ?? null,
+    date: row.ReviewDate ?? null,
+  }));
   const averageRating = computeAverage(data ?? [], count);
 
   return NextResponse.json({
     averageRating,
     reviewCount: count ?? 0,
     userRating,
+    reviews,
   });
 }
 
@@ -152,8 +172,20 @@ export async function POST(
     count,
   } = await supabaseAdmin
     .from("Reviews")
-    .select("Rating", { count: "exact" })
-    .eq("TourID", tourIdNum);
+    .select(
+      `
+      Rating,
+      Comment,
+      ReviewDate,
+      Users:UserID (
+        FullName,
+        ProfilePicture
+      )
+    `,
+      { count: "exact" }
+    )
+    .eq("TourID", tourIdNum)
+    .order("ReviewDate", { ascending: false });
 
   if (aggregateError) {
     console.error("[tour reviews] aggregate error", aggregateError);
@@ -163,6 +195,13 @@ export async function POST(
     );
   }
 
+  const reviews = (ratings ?? []).map((row) => ({
+    rating: row.Rating ?? 0,
+    comment: row.Comment ?? "",
+    userName: row.Users?.FullName ?? "Khách",
+    userAvatar: row.Users?.ProfilePicture ?? null,
+    date: row.ReviewDate ?? null,
+  }));
   const averageRating = computeAverage(ratings ?? [], count);
 
   const { error: updateTourError } = await supabaseAdmin
@@ -182,6 +221,6 @@ export async function POST(
     averageRating,
     reviewCount: count ?? 0,
     userRating: ratingValue,
+    reviews,
   });
 }
-

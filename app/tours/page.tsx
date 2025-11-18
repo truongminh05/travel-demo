@@ -42,6 +42,86 @@ const parseDurationDays = (durationStr: string): number => {
   return match ? parseInt(match[0], 10) : 0;
 };
 
+type RawTour = Record<string, unknown>;
+
+const toNumber = (value: unknown, fallback: number | null = null): number | null => {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed === "") return fallback;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+};
+
+const firstValidString = (...values: unknown[]): string | undefined => {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return undefined;
+};
+
+const normalizeTourFromApi = (tour: RawTour, index: number) => {
+  const typedTour = tour as Record<string, unknown>;
+  const rawId =
+    typedTour.id ??
+    typedTour.TourID ??
+    typedTour.tourid ??
+    typedTour.tourId ??
+    typedTour.TourId ??
+    typedTour.ID ??
+    typedTour.Id ??
+    index;
+  const normalizedId =
+    rawId !== null && rawId !== undefined ? String(rawId) : `tour-${index}`;
+
+  const slugCandidate = firstValidString(
+    typedTour.slug,
+    typedTour.tourslug,
+    typedTour.TourSlug,
+    typedTour.Slug
+  );
+  const normalizedSlug = slugCandidate ?? normalizedId;
+
+  return {
+    ...tour,
+    id: normalizedId,
+    slug: normalizedSlug,
+    title: firstValidString(typedTour.title, typedTour.Title) ?? "",
+    location: firstValidString(typedTour.location, typedTour.Location) ?? "",
+    description:
+      firstValidString(typedTour.description, typedTour.Description) ?? "",
+    category: firstValidString(typedTour.category, typedTour.Category),
+    status: firstValidString(typedTour.status, typedTour.Status),
+    image: firstValidString(typedTour.image, typedTour.Image),
+    cancellation:
+      firstValidString(typedTour.cancellation, typedTour.CancellationPolicy) ?? "",
+    duration: firstValidString(typedTour.duration, typedTour.Duration) ?? "",
+    price: toNumber(typedTour.price ?? typedTour.Price, 0) ?? 0,
+    originalPrice: toNumber(
+      typedTour.originalPrice ?? typedTour.OriginalPrice,
+      null
+    ),
+    rating:
+      toNumber(
+        typedTour.rating ??
+          typedTour.AverageRating ??
+          typedTour.averageRating,
+        0
+      ) ?? 0,
+    reviewCount:
+      toNumber(
+        typedTour.reviewCount ??
+          typedTour.ReviewCount ??
+          typedTour.review_count,
+        0
+      ) ?? 0,
+  };
+};
+
 export default function ToursPage() {
   const [allTours, setAllTours] = useState<any[]>([]); // State để giữ tất cả tour
   const [filteredTours, setFilteredTours] = useState<any[]>([]); // State để hiển thị tour đã lọc
@@ -87,8 +167,11 @@ export default function ToursPage() {
         const res = await fetch(`/api/tours`);
         if (!res.ok) throw new Error("Không thể tải danh sách tour");
         const data = await res.json();
-        setAllTours(data);
-        setFilteredTours(data); // Ban đầu hiển thị tất cả
+        const normalizedTours = Array.isArray(data)
+          ? data.map((tour, index) => normalizeTourFromApi(tour, index))
+          : [];
+        setAllTours(normalizedTours);
+        setFilteredTours(normalizedTours); // Ban đầu hiển thị tất cả
       } catch (error) {
         console.error("Lỗi khi fetch tour", error);
         setAllTours([]);

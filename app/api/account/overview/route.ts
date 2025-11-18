@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import supabaseAdmin from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const toNumber = (value: unknown): number => {
   if (typeof value === "number") return value;
@@ -27,8 +27,10 @@ const normaliseStatus = (status: unknown) => {
   return normalized || "pending";
 };
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
+export async function GET() {
+
+  const session = await getServerSession(authOptions);
+
   const userIdRaw = (session?.user as { id?: string | number | null } | undefined)?.id ?? null;
 
   if (!userIdRaw) {

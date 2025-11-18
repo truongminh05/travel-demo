@@ -104,7 +104,7 @@ export default function AddPaymentMethodPage() {
   const handleClose = (open: boolean) => {
     setDialogOpen(open);
     if (!open) {
-      router.push(returnUrl);
+    router.replace(returnUrl);
     }
   };
 
@@ -169,7 +169,7 @@ export default function AddPaymentMethodPage() {
                 "Thêm phương thức mới"
               )}
             </Button>
-            <Button variant="outline" onClick={() => router.push(returnUrl)}>
+            <Button variant="outline" onClick={() => router.replace(returnUrl)}>
               Quay lại tài khoản
             </Button>
           </div>

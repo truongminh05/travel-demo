@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("Tours")
       .select("TourID, Title, Status, Price, Image,Description")
       .order("CreatedAt", { ascending: false });
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     };
 
     // Thực hiện insert
-    const { error } = await supabase.from("Tours").insert([insertData]);
+    const { error } = await supabaseAdmin.from("Tours").insert([insertData]);
 
     if (error) {
       console.error("Supabase insert error:", error);

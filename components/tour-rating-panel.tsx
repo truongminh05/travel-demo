@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StarIcon } from "lucide-react";
 import { StarRating } from "@/components/star-rating";
+
+type ReviewItem = {
+  rating: number;
+  comment: string;
+  userName: string;
+  userAvatar: string | null;
+  date: string | null;
+};
 
 interface TourRatingPanelProps {
   tourId: number;
@@ -19,43 +27,50 @@ export function TourRatingPanel({
   const [averageRating, setAverageRating] = useState(initialAverage);
   const [reviewCount, setReviewCount] = useState(initialCount);
   const [userRating, setUserRating] = useState<number | null>(null);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    let isMounted = true;
-    const fetchRatings = async () => {
+  const fetchRatings = useCallback(
+    async (options?: { signal?: AbortSignal }) => {
+      if (options?.signal?.aborted) return;
       setIsLoading(true);
       try {
         const res = await fetch(`/api/tours/${tourId}/reviews`, {
           method: "GET",
           cache: "no-store",
+          signal: options?.signal,
         });
         if (!res.ok) {
           throw new Error(await res.text());
         }
         const data = await res.json();
-        if (!isMounted) return;
+        if (options?.signal?.aborted) return;
         setAverageRating(data.averageRating ?? 0);
         setReviewCount(data.reviewCount ?? 0);
         setUserRating(data.userRating ?? null);
+        setReviews(data.reviews ?? []);
       } catch (fetchError) {
+        if (options?.signal?.aborted) return;
         console.error("Failed to load ratings", fetchError);
-        if (isMounted) {
-          setError("Không thể tải thông tin đánh giá. Vui lòng thử lại sau.");
-        }
+        setError("Không thể tải thông tin đánh giá. Vui lòng thử lại sau.");
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (!options?.signal?.aborted) {
+          setIsLoading(false);
+        }
       }
-    };
-    fetchRatings();
-    return () => {
-      isMounted = false;
-    };
-  }, [tourId]);
+    },
+    [tourId]
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchRatings({ signal: controller.signal });
+    return () => controller.abort();
+  }, [fetchRatings]);
 
   const handleSelectRating = async (value: number) => {
     if (isSubmitting) return;
@@ -80,9 +95,7 @@ export function TourRatingPanel({
       }
 
       const data = await res.json();
-      setAverageRating(data.averageRating ?? value);
-      setReviewCount(data.reviewCount ?? 0);
-      setUserRating(data.userRating ?? value);
+      await fetchRatings();
       setSuccess("Cảm ơn bạn đã đánh giá!");
     } catch (submitError) {
       console.error("Submit rating error", submitError);
@@ -94,6 +107,17 @@ export function TourRatingPanel({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const formatReviewDate = (value?: string | null) => {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(date);
   };
 
   const starButtons = useMemo(() => {
@@ -164,6 +188,38 @@ export function TourRatingPanel({
 
         {error && <p className="text-sm text-destructive">{error}</p>}
         {success && <p className="text-sm text-emerald-600">{success}</p>}
+
+        {reviews.length > 0 && (
+          <div className="space-y-4 pt-4 border-t border-muted">
+            {reviews.map((review, index) => (
+              <div
+                key={`${review.userName}-${review.date ?? index}`}
+                className="space-y-1"
+              >
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    {review.userName}
+                  </span>
+                  {review.date && (
+                    <span>{formatReviewDate(review.date)}</span>
+                  )}
+                </div>
+                <StarRating
+                  value={review.rating}
+                  reviewCount={0}
+                  size="sm"
+                  className="gap-1"
+                  label={`Đánh giá ${review.rating} sao`}
+                />
+                {review.comment && (
+                  <p className="text-sm text-muted-foreground">
+                    {review.comment}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

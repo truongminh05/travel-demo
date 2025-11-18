@@ -1,113 +1,141 @@
-// File: app/api/tours/route.ts
+// File: app/api/admin/tours/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-const toNumber = (value: unknown): number => {
-  if (typeof value === "number") return value;
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  if (value && typeof value === "object" && "toString" in value) {
-    const parsed = Number((value as { toString(): string }).toString());
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-};
-
-export async function GET(req: NextRequest) {
+// Lấy danh sách tour cho admin (bảng quản lý tour)
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const url = new URL(request.url);
+    const slug = url.searchParams.get("slug");
+    const idParam = url.searchParams.get("id");
+    const selectFields = `
+      TourID,
+      TourSlug,
+      Title,
+      Status,
+      Price,
+      OriginalPrice,
+      Location,
+      Duration,
+      Image,
+      Category,
+      Description,
+      StartDate,
+      EndDate,
+      CreatedAt
+    `;
 
-    // Xây dựng câu truy vấn dựa trên các tham số từ URL
-    let query = supabase
-      .from("Tours")
-      .select(
-        "TourID, TourSlug, Title, Location, Image, Price, OriginalPrice, AverageRating, ReviewCount, Duration, CancellationPolicy, Category, Description" // << Thêm "Category" vào đây
-      )
-      .eq("Status", "Published");
-
-    const category = searchParams.get("category");
-    // Nếu có category và không phải là "all", thêm điều kiện lọc
-    if (category && category !== "all") {
-      query = query.eq("Category", category);
+    if (idParam && Number.isNaN(Number(idParam))) {
+      return NextResponse.json(
+        { message: "Invalid tour id" },
+        { status: 400 }
+      );
     }
 
-    const { data, error } = await query;
+    if (slug || idParam) {
+      let query = supabaseAdmin.from("Tours").select(selectFields);
+      if (slug) {
+        query = query.eq("TourSlug", slug);
+      }
+      if (idParam) {
+        query = query.eq("TourID", Number(idParam));
+      }
+      const { data, error } = await query.maybeSingle();
+      if (error) {
+        console.error("[ADMIN TOURS][GET] Supabase error:", error);
+        return NextResponse.json(
+          { message: "Lỗi khi lấy tour", supabaseError: error },
+          { status: 500 }
+        );
+      }
+      return NextResponse.json(data ?? null, { status: 200 });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("Tours")
+      .select(selectFields)
+      .order("CreatedAt", { ascending: false });
 
     if (error) {
-      console.error("Supabase error:", error);
+      console.error("[ADMIN TOURS][GET] Supabase error:", error);
       return NextResponse.json(
-        { message: `Lỗi truy vấn: ${error.message}` },
+        { message: "Lỗi khi lấy danh sách tour", supabaseError: error },
         { status: 500 }
       );
     }
-    // Lọc theo khoảng giá
-    const price_gte = searchParams.get("price_gte");
-    const price_lte = searchParams.get("price_lte");
-    if (price_gte) query = query.gte("Price", Number(price_gte));
-    if (price_lte) query = query.lte("Price", Number(price_lte));
 
-    // Lọc theo địa điểm
-    const locations = searchParams.get("locations");
-    if (locations) query = query.in("Location", locations.split(","));
-
-    // Lọc theo thời gian
-    const durations = searchParams.get("durations");
-    if (durations) query = query.in("Duration", durations.split(","));
-
-    // Lọc theo đánh giá tối thiểu
-    const rating_gte = searchParams.get("rating_gte");
-    if (rating_gte) query = query.gte("AverageRating", Number(rating_gte));
-
-    // Sắp xếp
-    const sortBy = searchParams.get("sortBy") || "featured";
-    if (sortBy === "price-low")
-      query = query.order("Price", { ascending: true });
-    if (sortBy === "price-high")
-      query = query.order("Price", { ascending: false });
-    if (sortBy === "rating")
-      query = query.order("AverageRating", {
-        ascending: false,
-        nullsFirst: false,
-      });
-    if (sortBy === "featured")
-      query = query.order("CreatedAt", { ascending: false });
-
-    // if (error) {
-    //   console.error("Supabase error:", error);
-    //   return NextResponse.json(
-    //     { message: `Lỗi truy vấn: ${error.message}` },
-    //     { status: 500 }
-    //   );
-    // }
-
-    // Map dữ liệu để trả về cho client
-    const tours = data.map((tour) => ({
-      id: tour.TourID,
-      slug: tour.TourSlug,
-      title: tour.Title,
-      location: tour.Location,
-      image: tour.Image,
-      price: toNumber(tour.Price),
-      originalPrice: toNumber(tour.OriginalPrice),
-      rating: toNumber(tour.AverageRating),
-      reviewCount: toNumber(tour.ReviewCount),
-      duration: tour.Duration,
-      cancellation: tour.CancellationPolicy,
-      category: tour.Category,
-      description: tour.Description,
-      highlights: [],
-    }));
-
-    return NextResponse.json(tours);
-  } catch (error) {
-    console.error("Lỗi khi lấy danh sách tour:", error);
+    return NextResponse.json(data ?? [], { status: 200 });
+  } catch (err) {
+    console.error("[ADMIN TOURS][GET] Server error:", err);
     return NextResponse.json(
-      { message: "Lỗi máy chủ nội bộ" },
+      { message: "Lỗi máy chủ nội bộ", error: (err as Error).message },
       { status: 500 }
     );
   }
 }
 
+// Thêm tour mới từ form admin
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+
+    const {
+      Title,
+      TourSlug,
+      Price,
+      OriginalPrice,
+      Location,
+      Duration,
+      Image,
+      Category,
+      Description,
+      Status,
+    } = body;
+
+    if (!Title || !TourSlug) {
+      return NextResponse.json(
+        { message: "Thiếu Title hoặc TourSlug" },
+        { status: 400 }
+      );
+    }
+
+    const insertData: any = {
+      Title,
+      TourSlug,
+      Price: Price ?? 0,
+      OriginalPrice: OriginalPrice ?? null,
+      Location: Location ?? null,
+      Duration: Duration ?? null,
+      Image: Image ?? null,
+      Category: Category ?? null,
+      Description: Description ?? null,
+      Status: Status ?? "Draft",
+    };
+
+    const { data, error } = await supabaseAdmin
+      .from("Tours")
+      .insert([insertData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[ADMIN TOURS][POST] Supabase insert error:", error);
+      return NextResponse.json(
+        {
+          message: "Lỗi khi thêm tour",
+          supabaseError: error,
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(data, { status: 201 });
+  } catch (err) {
+    console.error("[ADMIN TOURS][POST] Server error:", err);
+    return NextResponse.json(
+      { message: "Lỗi máy chủ nội bộ", error: (err as Error).message },
+      { status: 500 }
+    );
+  }
+}

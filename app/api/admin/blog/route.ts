@@ -1,7 +1,7 @@
 // File: app/api/admin/blog/route.ts
 
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { writeFile } from "fs/promises";
 import path from "path";
 import { getServerSession } from "next-auth";
@@ -10,7 +10,7 @@ import { authOptions } from "@/lib/auth";
 // Lấy danh sách bài viết
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("BlogPosts")
       .select("PostID, Title, Status, CreatedAt, Image")
       .order("CreatedAt", { ascending: false });
@@ -53,7 +53,15 @@ export async function POST(request: Request) {
       ? new Date(`${publishedDateStr}T00:00:00Z`).toISOString()
       : new Date().toISOString();
 
-    const { error } = await supabase.from("BlogPosts").insert([
+    const tagsValue = (form.get("Tags") as string) ?? "";
+    const tagsArray = tagsValue
+      ? tagsValue
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+      : [];
+
+    const { error } = await supabaseAdmin.from("BlogPosts").insert([
       {
         Title: form.get("Title"),
         PostSlug: form.get("PostSlug"),
@@ -63,9 +71,10 @@ export async function POST(request: Request) {
         AuthorName: form.get("AuthorName"),
         Category: form.get("Category"),
         Status: form.get("Status"),
-        PublishedDate: publishedDate, // NEW
-        AuthorID: (session.user as any)?.id, // nếu bạn cần
-        CreatedAt: new Date().toISOString(), // tuỳ schema của bạn
+        PublishedDate: publishedDate,
+        AuthorID: (session.user as any)?.id,
+        Tags: tagsArray,
+        CreatedAt: new Date().toISOString(),
       },
     ]);
 

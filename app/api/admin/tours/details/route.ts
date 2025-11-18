@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { mkdir, writeFile } from "fs/promises";
@@ -145,7 +145,7 @@ function parseIncluded(value: FormDataEntryValue | null): IncludedParseResult {
 }
 
 async function replaceSchedule(tourId: number, items: SchedulePayload[]) {
-  const { error: deleteError } = await supabase
+  const { error: deleteError } = await supabaseAdmin
     .from("TourItinerary")
     .delete()
     .eq("TourID", tourId);
@@ -188,7 +188,7 @@ async function replaceSchedule(tourId: number, items: SchedulePayload[]) {
     return;
   }
 
-  const { error: insertError } = await supabase
+  const { error: insertError } = await supabaseAdmin
     .from("TourItinerary")
     .insert(rows);
 
@@ -198,7 +198,7 @@ async function replaceSchedule(tourId: number, items: SchedulePayload[]) {
 }
 
 async function replaceIncluded(tourId: number, items: string[]) {
-  const { error: deleteError } = await supabase
+  const { error: deleteError } = await supabaseAdmin
     .from("TourHighlights")
     .delete()
     .eq("TourID", tourId);
@@ -216,7 +216,7 @@ async function replaceIncluded(tourId: number, items: string[]) {
     HighlightText: text,
   }));
 
-  const { error: insertError } = await supabase
+  const { error: insertError } = await supabaseAdmin
     .from("TourHighlights")
     .insert(rows);
 
@@ -267,7 +267,7 @@ export async function POST(req: Request) {
     }
 
     if (Object.keys(tourUpdate).length > 0) {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from("Tours")
         .update(tourUpdate)
         .eq("TourID", tourId);
@@ -342,7 +342,7 @@ export async function POST(req: Request) {
     }
 
     if (rows.length) {
-      const { error: insertError } = await supabase
+      const { error: insertError } = await supabaseAdmin
         .from("TourGallery")
         .insert(rows);
       if (insertError) {

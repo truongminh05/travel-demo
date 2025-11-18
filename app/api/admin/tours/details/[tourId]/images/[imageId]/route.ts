@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { mkdir, writeFile } from "fs/promises";
@@ -51,7 +51,7 @@ export async function DELETE(
     return NextResponse.json({ message: "Invalid params" }, { status: 400 });
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("TourGallery")
     .delete()
     .eq("TourID", tourId)
@@ -169,7 +169,7 @@ export async function PATCH(
       );
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("TourGallery")
       .update(updateData)
       .eq("TourID", tourId)

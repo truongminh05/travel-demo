@@ -1,14 +1,15 @@
 // File: app/api/admin/users/route.ts
 
-import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET() {
   try {
-    // THAY ĐỔI: Thay thế FirstName, LastName bằng FullName
-    const { data, error } = await supabase
+    // Dùng service role để BYPASS RLS và lấy full danh sách Users
+    const { data, error } = await supabaseAdmin
       .from("Users")
-      .select("UserID, FullName, Email, Role, CreatedAt");
+      .select("UserID, FullName, Email, Role, CreatedAt")
+      .order("CreatedAt", { ascending: false });
 
     if (error) {
       console.error("Supabase error:", error);
@@ -18,7 +19,7 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data ?? [], { status: 200 });
   } catch (error) {
     console.error("Lỗi máy chủ nội bộ:", error);
     return NextResponse.json(

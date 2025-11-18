@@ -20,17 +20,19 @@ import { Badge } from "@/components/ui/badge";
 
 // Hàm lấy dữ liệu không đổi
 async function getUsers() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users`,
-    { cache: "no-store" }
-  );
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+  const res = await fetch(`${baseUrl}/api/admin/users`, {
+    cache: "no-store",
+  });
+
   if (!res.ok) {
-    // Ném lỗi với thông tin chi tiết hơn để dễ debug
     const errorBody = await res.text();
     throw new Error(
       `Failed to fetch users. Status: ${res.status}. Body: ${errorBody}`
     );
   }
+
   return res.json();
 }
 

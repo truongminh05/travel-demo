@@ -1,7 +1,8 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+// lib/auth.ts
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcrypt";
-import { supabase } from "@/lib/supabaseClient";
+import bcrypt from "bcryptjs";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import type { Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import type { User } from "next-auth";
@@ -15,29 +16,35 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        try {
-          const { data: user, error } = await supabase
-            .from("Users")
-            .select("UserID,Username, Email, PasswordHash, FullName, Role")
-            .eq("Email", credentials.email)
-            .single();
-          if (error || !user) return null;
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            user.PasswordHash
-          );
-          if (!isPasswordValid) return null;
-          return {
-            id: user.UserID,
-            email: user.Email,
-            name: user.FullName,
-            role: user.Role,
-          };
-        } catch (error) {
-          console.error("Lỗi xác thực Supabase:", error);
+        if (!credentials?.email || !credentials?.password) {
           return null;
         }
+
+        const { email, password } = credentials;
+
+        // DÙNG SERVICE ROLE → BYPASS RLS
+        const { data, error } = await supabaseAdmin
+          .from("Users")
+          .select("UserID, Email, PasswordHash, FullName, Role")
+          .eq("Email", email)
+          .single();
+
+        if (error || !data) {
+          console.error("Login error (select user):", error);
+          return null;
+        }
+
+        const isValid = await bcrypt.compare(password, data.PasswordHash);
+        if (!isValid) {
+          return null;
+        }
+
+        return {
+          id: data.UserID,
+          email: data.Email,
+          name: data.FullName,
+          role: data.Role,
+        };
       },
     }),
   ],
@@ -64,4 +71,3 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
 };
-

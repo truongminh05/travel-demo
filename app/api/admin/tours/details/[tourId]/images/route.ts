@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { mkdir, writeFile } from "fs/promises";
@@ -113,7 +113,7 @@ export async function POST(
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(path.join(uploadsDir, filename), buffer);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("TourGallery")
       .insert({
         TourID: tourId,
@@ -165,7 +165,7 @@ export async function DELETE(
     return NextResponse.json({ message: "Invalid params" }, { status: 400 });
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("TourGallery")
     .delete()
     .eq("TourID", tourId)
@@ -200,7 +200,7 @@ export async function PATCH(
   }
 
   try {
-    const existingRes = await supabase
+    const existingRes = await supabaseAdmin
       .from("TourGallery")
       .select("Category, ScheduleDay, ServiceKey")
       .eq("TourID", tourId)
@@ -320,7 +320,7 @@ export async function PATCH(
       );
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("TourGallery")
       .update(updateData)
       .eq("TourID", tourId)

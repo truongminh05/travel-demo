@@ -9,7 +9,7 @@ import { BookTourButton } from "@/components/book-tour-button";
 import type { GalleryCard } from "@/components/tour-gallery-tabs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import supabaseAdmin from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 
 export const dynamic = "force-dynamic";

@@ -17,6 +17,16 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
+const generateSlug = (title: string) => {
+  return title
+    .toLowerCase()
+    .normalize("NFD") // bỏ dấu tiếng Việt
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "") // bỏ ký tự đặc biệt
+    .trim()
+    .replace(/\s+/g, "-") // space -> -
+    .replace(/-+/g, "-"); // gộp nhiều dấu - liên tiếp
+};
 
 // Định nghĩa kiểu dữ liệu cho formData
 interface TourFormData {
@@ -73,6 +83,7 @@ export function AdminTourForm({
     EndDate: formatDateForInput(tourData?.EndDate),
     ...tourData,
   });
+  const [isSlugTouched, setIsSlugTouched] = useState<boolean>(false);
   const [imagePreview, setImagePreview] = useState<string | null>(
     tourData?.Image || null // Sử dụng 'Image'
   );
@@ -83,9 +94,23 @@ export function AdminTourForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+
+      // Nếu đang gõ Title, và slug chưa bị user sửa tay, và không phải chế độ edit
+      if (name === "Title" && !isSlugTouched && !isEditing) {
+        next.TourSlug = generateSlug(value);
+      }
+
+      return next;
+    });
+
+    // Nếu user gõ trực tiếp vào ô slug => đánh dấu là đã "tự sửa"
+    if (name === "TourSlug") {
+      setIsSlugTouched(true);
+    }
+  };
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };

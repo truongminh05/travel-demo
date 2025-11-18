@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { writeFile } from "fs/promises";
 import path from "path";
 
@@ -11,7 +11,7 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("Tours")
       .select("*")
       .eq("TourID", id)
@@ -83,7 +83,7 @@ export async function PATCH(
       updateData.Image = imageUrl;
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("Tours")
       .update(updateData)
       .eq("TourID", id);
@@ -114,7 +114,7 @@ export async function DELETE(
   try {
     const { id } = await context.params;
 
-    const { error } = await supabase.from("Tours").delete().eq("TourID", id);
+    const { error } = await supabaseAdmin.from("Tours").delete().eq("TourID", id);
 
     if (error) {
       console.error("DELETE tour error:", error);
