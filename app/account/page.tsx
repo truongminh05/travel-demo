@@ -404,7 +404,7 @@ export default function AccountPage() {
             onValueChange={setActiveTab}
             className="space-y-8"
           >
-            <TabsList className="flex flex-col h-auto w-full md:grid md:grid-cols-5 mb-4 md:mb-0">
+            <TabsList className="flex w-full justify-start overflow-x-auto md:grid md:grid-cols-5 h-auto p-1 no-scrollbar">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <UserIcon className="w-4 h-4" />
                 Tổng quan
