@@ -59,7 +59,7 @@ export function SiteHeader() {
             )}
           </nav>
 
-          {/* Desktop Actions - THAY ĐỔI TẠI ĐÂY */}
+          {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <>
@@ -85,15 +85,16 @@ export function SiteHeader() {
             )}
           </div>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu - UPDATED */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="sm">
                 <MenuIcon className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80">
+            <SheetContent side="right" className="w-80 overflow-y-auto">
               <div className="flex flex-col space-y-6 mt-6">
+                {/* Mobile Logo */}
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                     <span className="text-primary-foreground font-bold text-lg">
@@ -116,9 +117,54 @@ export function SiteHeader() {
                       {item.name}
                     </Link>
                   ))}
+
+                  {/* ADDED: Admin Link for Mobile */}
+                  {isAuthenticated && user?.role === "Admin" && (
+                    <Link
+                      href="/admin/dashboard"
+                      className="text-lg font-medium text-primary hover:text-primary/80 transition-colors"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
                 </nav>
 
                 <div className="border-t pt-6 space-y-4">
+                  {/* ADDED: Authentication Actions for Mobile */}
+                  <div className="flex flex-col gap-3">
+                    {isAuthenticated ? (
+                      <Button
+                        asChild
+                        variant="ghost"
+                        className="justify-start px-0 h-auto py-2"
+                      >
+                        <Link
+                          href="/account"
+                          className="flex items-center gap-2 text-lg"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <User className="w-5 h-5" />
+                          Chào, {user?.firstName}
+                        </Link>
+                      </Button>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3 mb-2">
+                        <Button
+                          asChild
+                          variant="outline"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Link href="/login">Đăng nhập</Link>
+                        </Button>
+                        <Button asChild onClick={() => setIsOpen(false)}>
+                          <Link href="/register">Đăng ký</Link>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Contact Info */}
                   <div className="space-y-3">
                     <a
                       href="tel:+84384349471"
@@ -135,9 +181,12 @@ export function SiteHeader() {
                       minhhuyenkuti@gmail.com
                     </a>
                   </div>
+
+                  {/* Book Now Button */}
                   <Button
                     asChild
                     className="w-full bg-primary hover:bg-primary/90"
+                    onClick={() => setIsOpen(false)}
                   >
                     <Link href="/tours">Book Now</Link>
                   </Button>
