@@ -10,27 +10,26 @@ export async function GET(request: NextRequest) {
     const slug = url.searchParams.get("slug");
     const idParam = url.searchParams.get("id");
     const selectFields = `
-      TourID,
-      TourSlug,
-      Title,
-      Status,
-      Price,
-      OriginalPrice,
-      Location,
-      Duration,
-      Image,
-      Category,
-      Description,
-      StartDate,
-      EndDate,
-      CreatedAt
-    `;
+  TourID,
+  TourSlug,
+  Title,
+  Status,
+  Price,
+  OriginalPrice,
+  Location,
+  Duration,
+  Image,
+  Category,
+  Description,
+  StartDate,
+  EndDate,
+  CreatedAt,
+  AverageRating,
+  ReviewCount
+`;
 
     if (idParam && Number.isNaN(Number(idParam))) {
-      return NextResponse.json(
-        { message: "Invalid tour id" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid tour id" }, { status: 400 });
     }
 
     if (slug || idParam) {
