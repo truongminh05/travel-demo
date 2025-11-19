@@ -88,8 +88,7 @@ export function BookTourButton({
     [normalizedPrice, guests]
   );
 
-  const depositAmount =
-    paymentMethod === "consultation" ? 0 : totals.deposit;
+  const depositAmount = paymentMethod === "consultation" ? 0 : totals.deposit;
 
   const hasBankAccount = Boolean(
     accounts.bank?.bankName && accounts.bank?.accountNumber
@@ -154,7 +153,9 @@ export function BookTourButton({
       try {
         const storedPreference =
           typeof window !== "undefined"
-            ? (localStorage.getItem("paymentPreference") as PaymentMethod | null)
+            ? (localStorage.getItem(
+                "paymentPreference"
+              ) as PaymentMethod | null)
             : null;
 
         const methods = await loadPaymentMethods();
@@ -327,14 +328,16 @@ export function BookTourButton({
           <Button
             variant={buttonVariant}
             size={buttonSize}
-            className={`flex items-center gap-2 ${buttonClassName ?? ""}`.trim()}
+            className={`flex items-center gap-2 ${
+              buttonClassName ?? ""
+            }`.trim()}
             onClick={triggerBooking}
           >
             <TicketIcon className="w-4 h-4" />
             Đặt tour ngay
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-4">
             <DialogHeader>
               <DialogTitle>Đặt tour</DialogTitle>
@@ -358,7 +361,9 @@ export function BookTourButton({
                         min={1}
                         value={guests}
                         onChange={(event) =>
-                          setGuests(Math.max(1, Number(event.target.value) || 1))
+                          setGuests(
+                            Math.max(1, Number(event.target.value) || 1)
+                          )
                         }
                         required
                       />
@@ -373,7 +378,9 @@ export function BookTourButton({
                         id="departure"
                         type="date"
                         value={departureDate}
-                        onChange={(event) => setDepartureDate(event.target.value)}
+                        onChange={(event) =>
+                          setDepartureDate(event.target.value)
+                        }
                         min={new Date().toISOString().split("T")[0]}
                       />
                       <CalendarIcon className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -394,7 +401,8 @@ export function BookTourButton({
                       Bước 2 · Chọn phương thức thanh toán
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Các phương thức được lấy từ mục Thanh toán trong hồ sơ của bạn.
+                      Các phương thức được lấy từ mục Thanh toán trong hồ sơ của
+                      bạn.
                     </p>
                   </div>
                   <Button
@@ -426,28 +434,47 @@ export function BookTourButton({
                     >
                       <div className="flex items-start gap-3 rounded-md border p-3">
                         <RadioGroupItem value="bank" id="payment-bank" />
-                        <Label htmlFor="payment-bank" className="flex-1 space-y-1">
-                          <span className="block font-medium">Chuyển khoản ngân hàng</span>
+                        <Label
+                          htmlFor="payment-bank"
+                          className="flex-1 space-y-1"
+                        >
+                          <span className="block font-medium">
+                            Chuyển khoản ngân hàng
+                          </span>
                           <span className="block text-sm text-muted-foreground">
-                            Đặt cọc 5% qua tài khoản ngân hàng. {hasBankAccount ? "" : "(Chưa có tài khoản)"}
+                            Đặt cọc 5% qua tài khoản ngân hàng.{" "}
+                            {hasBankAccount ? "" : "(Chưa có tài khoản)"}
                           </span>
                         </Label>
                       </div>
                       <div className="flex items-start gap-3 rounded-md border p-3">
                         <RadioGroupItem value="momo" id="payment-momo" />
-                        <Label htmlFor="payment-momo" className="flex-1 space-y-1">
+                        <Label
+                          htmlFor="payment-momo"
+                          className="flex-1 space-y-1"
+                        >
                           <span className="block font-medium">Ví MoMo</span>
                           <span className="block text-sm text-muted-foreground">
-                            Đặt cọc 5% qua ví điện tử. {hasMomoAccount ? "" : "(Chưa có tài khoản)"}
+                            Đặt cọc 5% qua ví điện tử.{" "}
+                            {hasMomoAccount ? "" : "(Chưa có tài khoản)"}
                           </span>
                         </Label>
                       </div>
                       <div className="flex items-start gap-3 rounded-md border p-3">
-                        <RadioGroupItem value="consultation" id="payment-consult" />
-                        <Label htmlFor="payment-consult" className="flex-1 space-y-1">
-                          <span className="block font-medium">Liên hệ tư vấn</span>
+                        <RadioGroupItem
+                          value="consultation"
+                          id="payment-consult"
+                        />
+                        <Label
+                          htmlFor="payment-consult"
+                          className="flex-1 space-y-1"
+                        >
+                          <span className="block font-medium">
+                            Liên hệ tư vấn
+                          </span>
                           <span className="block text-sm text-muted-foreground">
-                            Yêu cầu đội ngũ tư vấn liên hệ, chưa cần thanh toán online.
+                            Yêu cầu đội ngũ tư vấn liên hệ, chưa cần thanh toán
+                            online.
                           </span>
                         </Label>
                       </div>
@@ -455,7 +482,8 @@ export function BookTourButton({
 
                     {paymentMethod === "consultation" ? (
                       <p className="text-sm text-muted-foreground">
-                        Yêu cầu của bạn sẽ được chuyển cho quản trị viên để xác nhận và thông báo kết quả đặt tour.
+                        Yêu cầu của bạn sẽ được chuyển cho quản trị viên để xác
+                        nhận và thông báo kết quả đặt tour.
                       </p>
                     ) : (
                       <div className="rounded-lg border bg-muted/40 p-4 space-y-2 text-sm">
@@ -475,13 +503,16 @@ export function BookTourButton({
                         {paymentMethod === "bank" && accounts.bank && (
                           <div className="text-xs text-muted-foreground pt-2">
                             <p>
-                              <strong>Ngân hàng:</strong> {accounts.bank.bankName}
+                              <strong>Ngân hàng:</strong>{" "}
+                              {accounts.bank.bankName}
                             </p>
                             <p>
-                              <strong>Chủ tài khoản:</strong> {accounts.bank.accountName}
+                              <strong>Chủ tài khoản:</strong>{" "}
+                              {accounts.bank.accountName}
                             </p>
                             <p>
-                              <strong>Số tài khoản:</strong> {accounts.bank.accountNumber}
+                              <strong>Số tài khoản:</strong>{" "}
+                              {accounts.bank.accountNumber}
                             </p>
                           </div>
                         )}
@@ -491,7 +522,8 @@ export function BookTourButton({
                               <strong>Chủ ví:</strong> {accounts.momo.ownerName}
                             </p>
                             <p>
-                              <strong>Số điện thoại:</strong> {accounts.momo.phoneNumber}
+                              <strong>Số điện thoại:</strong>{" "}
+                              {accounts.momo.phoneNumber}
                             </p>
                           </div>
                         )}
