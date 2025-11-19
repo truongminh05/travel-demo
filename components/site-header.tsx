@@ -25,7 +25,7 @@ export function SiteHeader() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-shrink-0 mr-4">
             <Link href="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">
@@ -39,7 +39,7 @@ export function SiteHeader() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             {navigationItems.map((item) => (
               <Link
                 key={item.name}
@@ -86,13 +86,14 @@ export function SiteHeader() {
           </div>
 
           {/* Mobile Menu - UPDATED */}
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <Sheet>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="sm">
-                <MenuIcon className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="-mr-2">
+                <MenuIcon className="h-6 w-6" />
+                <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 overflow-y-auto">
+            <SheetContent side="right">
               <div className="flex flex-col space-y-6 mt-6">
                 {/* Mobile Logo */}
                 <div className="flex items-center space-x-2">

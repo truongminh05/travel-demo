@@ -72,11 +72,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  // You can also set themeColor here if you want the browser bar to match your app
-  // themeColor: [
-  //   { media: "(prefers-color-scheme: light)", color: "white" },
-  //   { media: "(prefers-color-scheme: dark)", color: "black" },
-  // ],
+  userScalable: false, // Ngăn người dùng zoom làm vỡ giao diện
 };
 
 export default function RootLayout({
