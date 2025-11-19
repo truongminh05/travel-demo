@@ -67,6 +67,18 @@ export const metadata: Metadata = {
   generator: "v0.app",
 };
 
+// 2. Add the viewport export here
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  // You can also set themeColor here if you want the browser bar to match your app
+  // themeColor: [
+  //   { media: "(prefers-color-scheme: light)", color: "white" },
+  //   { media: "(prefers-color-scheme: dark)", color: "black" },
+  // ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
