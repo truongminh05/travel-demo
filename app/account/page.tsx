@@ -250,7 +250,8 @@ export default function AccountPage() {
       if (!active) return;
 
       if (typeof window !== "undefined") {
-        const storedPreference = window.localStorage.getItem("paymentPreference");
+        const storedPreference =
+          window.localStorage.getItem("paymentPreference");
         if (
           storedPreference === "bank" ||
           storedPreference === "momo" ||
@@ -286,9 +287,7 @@ export default function AccountPage() {
       toast({
         title: "Không thể lưu phương thức thanh toán",
         description:
-          error instanceof Error
-            ? error.message
-            : "Vui lòng thử lại sau.",
+          error instanceof Error ? error.message : "Vui lòng thử lại sau.",
         variant: "destructive",
       });
       throw error;
@@ -405,7 +404,7 @@ export default function AccountPage() {
             onValueChange={setActiveTab}
             className="space-y-8"
           >
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="flex flex-col h-auto w-full md:grid md:grid-cols-5 mb-4 md:mb-0">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <UserIcon className="w-4 h-4" />
                 Tổng quan
@@ -1008,11 +1007,17 @@ export default function AccountPage() {
                         {paymentAccounts.bank ? (
                           <div className="text-muted-foreground space-y-1">
                             <p>Ngân hàng: {paymentAccounts.bank.bankName}</p>
-                            <p>Chủ tài khoản: {paymentAccounts.bank.accountName}</p>
-                            <p>Số tài khoản: {paymentAccounts.bank.accountNumber}</p>
+                            <p>
+                              Chủ tài khoản: {paymentAccounts.bank.accountName}
+                            </p>
+                            <p>
+                              Số tài khoản: {paymentAccounts.bank.accountNumber}
+                            </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground">Chưa lưu tài khoản ngân hàng.</p>
+                          <p className="text-muted-foreground">
+                            Chưa lưu tài khoản ngân hàng.
+                          </p>
                         )}
                       </div>
                       <Separator />
@@ -1021,10 +1026,14 @@ export default function AccountPage() {
                         {paymentAccounts.momo ? (
                           <div className="text-muted-foreground space-y-1">
                             <p>Chủ ví: {paymentAccounts.momo.ownerName}</p>
-                            <p>Số điện thoại: {paymentAccounts.momo.phoneNumber}</p>
+                            <p>
+                              Số điện thoại: {paymentAccounts.momo.phoneNumber}
+                            </p>
                           </div>
                         ) : (
-                          <p className="text-muted-foreground">Chưa lưu ví MoMo.</p>
+                          <p className="text-muted-foreground">
+                            Chưa lưu ví MoMo.
+                          </p>
                         )}
                       </div>
                     </div>
@@ -1178,4 +1187,3 @@ export default function AccountPage() {
     </div>
   );
 }
-
