@@ -108,27 +108,119 @@ export async function PATCH(
 
 // DELETE: xóa tour
 export async function DELETE(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: idStr } = await params;
+  const id = Number(idStr);
+
+  if (!Number.isFinite(id)) {
+    return NextResponse.json(
+      { message: "ID tour không hợp lệ" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const { id } = await context.params;
+    // 1. Lấy danh sách BookingID của tour này (nếu có)
+    const { data: bookings, error: bookingsError } = await supabaseAdmin
+      .from("Bookings")
+      .select("BookingID")
+      .eq("TourID", id);
 
-    const { error } = await supabaseAdmin.from("Tours").delete().eq("TourID", id);
+    if (bookingsError) throw bookingsError;
 
-    if (error) {
-      console.error("DELETE tour error:", error);
-      return NextResponse.json(
-        { message: "Lỗi khi xóa tour" },
-        { status: 500 }
-      );
+    const bookingIds = (bookings ?? [])
+      .map((b: any) => b.BookingID)
+      .filter((x: any) => x != null);
+
+    // 2. Xoá bảng phụ theo TourID
+    const byTourTables = [
+      "Wishlists",
+      "TourGallery",
+      "TourHighlights",
+      "TourItinerary",
+    ] as const;
+
+    for (const table of byTourTables) {
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .eq("TourID", id);
+
+      if (error) {
+        console.error(`[admin/tours] DELETE from ${table} error`, error);
+        throw error;
+      }
     }
 
-    return NextResponse.json({ message: "Tour đã được xóa thành công!" });
-  } catch (error) {
-    console.error("DELETE error:", error);
+    // 3. Xoá Reviews
+    if (bookingIds.length > 0) {
+      const orFilter = `TourID.eq.${id},BookingID.in.(${bookingIds.join(",")})`;
+
+      const { error: reviewError } = await supabaseAdmin
+        .from("Reviews")
+        .delete()
+        .or(orFilter);
+
+      if (reviewError) {
+        console.error("[admin/tours] DELETE Reviews error", reviewError);
+        throw reviewError;
+      }
+    } else {
+      const { error: reviewError } = await supabaseAdmin
+        .from("Reviews")
+        .delete()
+        .eq("TourID", id);
+
+      if (reviewError) {
+        console.error("[admin/tours] DELETE Reviews error", reviewError);
+        throw reviewError;
+      }
+    }
+
+    // 4. Nếu có booking thì xoá Payments rồi Bookings
+    if (bookingIds.length > 0) {
+      const { error: payError } = await supabaseAdmin
+        .from("Payments")
+        .delete()
+        .in("BookingID", bookingIds);
+
+      if (payError) {
+        console.error("[admin/tours] DELETE Payments error", payError);
+        throw payError;
+      }
+
+      const { error: delBookingError } = await supabaseAdmin
+        .from("Bookings")
+        .delete()
+        .eq("TourID", id);
+
+      if (delBookingError) {
+        console.error("[admin/tours] DELETE Bookings error", delBookingError);
+        throw delBookingError;
+      }
+    }
+
+    // 5. Cuối cùng xoá Tour
+    const { error: tourError } = await supabaseAdmin
+      .from("Tours")
+      .delete()
+      .eq("TourID", id);
+
+    if (tourError) {
+      console.error("[admin/tours] DELETE Tours error", tourError);
+      throw tourError;
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("[admin/tours] DELETE exception", err);
     return NextResponse.json(
-      { message: "Lỗi máy chủ nội bộ" },
+      {
+        message: "Không thể xoá tour",
+        error: err?.message ?? String(err),
+      },
       { status: 500 }
     );
   }
