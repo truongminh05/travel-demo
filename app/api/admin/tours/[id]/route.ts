@@ -108,27 +108,72 @@ export async function PATCH(
 
 // DELETE: xóa tour
 export async function DELETE(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  _req: Request,
+  context: { params: Promise<{ tourId: string }> }
 ) {
+  const { tourId } = await context.params;
+  const id = Number(tourId);
+
+  if (!Number.isFinite(id)) {
+    return NextResponse.json({ message: "ID tour không hợp lệ" }, { status: 400 });
+  }
+
   try {
-    const { id } = await context.params;
+    // 1. Không cho xoá nếu tour đã có đơn đặt
+    const { count: bookingCount, error: bookingError } = await supabaseAdmin
+      .from("Bookings")
+      .select("BookingID", { count: "exact", head: true })
+      .eq("TourID", id);
 
-    const { error } = await supabaseAdmin.from("Tours").delete().eq("TourID", id);
+    if (bookingError) throw bookingError;
 
-    if (error) {
-      console.error("DELETE tour error:", error);
+    if ((bookingCount ?? 0) > 0) {
       return NextResponse.json(
-        { message: "Lỗi khi xóa tour" },
-        { status: 500 }
+        {
+          message:
+            "Tour này đã có đơn đặt, không thể xoá. Hãy đổi trạng thái tour (ví dụ: inactive/draft) thay vì xoá.",
+        },
+        { status: 400 }
       );
     }
 
-    return NextResponse.json({ message: "Tour đã được xóa thành công!" });
-  } catch (error) {
-    console.error("DELETE error:", error);
+    // 2. Xoá các bảng phụ dùng TourID
+    const tablesToDelete = [
+      "Reviews",
+      "TourGallery",
+      "TourHighlights",
+      "TourItinerary",
+      "Wishlists",
+    ];
+
+    for (const table of tablesToDelete) {
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .eq("TourID", id);
+
+      if (error) {
+        console.error(`[admin/tours] DELETE from ${table} error`, error);
+        throw error;
+      }
+    }
+
+    // 3. Xoá Tour chính
+    const { error: deleteTourError } = await supabaseAdmin
+      .from("Tours")
+      .delete()
+      .eq("TourID", id);
+
+    if (deleteTourError) throw deleteTourError;
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("[admin/tours] DELETE error", err);
     return NextResponse.json(
-      { message: "Lỗi máy chủ nội bộ" },
+      {
+        message: "Không thể xoá tour",
+        error: err?.message ?? String(err),
+      },
       { status: 500 }
     );
   }
