@@ -1,14 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+// lib/prisma.ts
+// Project này dùng Supabase, không sử dụng Prisma.
+// File này là stub để tránh lỗi import nếu đâu đó còn lỡ import prisma.
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
-}
-
-export const prisma = globalThis.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
-}
+const prisma: any = {};
 
 export default prisma;
